@@ -1,0 +1,5 @@
+# Prototype config placeholder.
+# Your current script does NOT read this file.
+# Keep it for later if you decide to externalize structure/settings.
+workspace:
+  name: "ClickUp Workspace Setup Prototype"
