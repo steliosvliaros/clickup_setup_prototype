@@ -28,6 +28,7 @@ from typing import Dict, List, Optional
 # CONFIGURATION
 # ============================================================================
 
+
 class ClickUpConfig:
     def __init__(self, api_token: str, team_id: str):
         self.api_token = api_token
@@ -47,7 +48,7 @@ class ClickUpAPI:
         self.config = config
     
     def _request(self, method: str, endpoint: str, data: Optional[Dict] = None) -> Dict:
-        """Make API request with error handling"""
+        """Make API request with error handling and rate limiting"""
         url = f"{self.config.base_url}/{endpoint}"
         
         try:
@@ -61,12 +62,23 @@ class ClickUpAPI:
                 response = requests.delete(url, headers=self.config.headers)
             
             response.raise_for_status()
+            
+            # Add small delay to respect rate limits (100 req/min = ~0.6s per request)
+            time.sleep(0.5)  # Conservative baseline
+            
             return response.json() if response.text else {}
         
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 429:  # Rate limit exceeded
+                print("Rate limit hit, waiting 60 seconds...")
+                time.sleep(60)
+                return self._request(method, endpoint, data)  # Retry
             print(f"API Error: {e}")
             if hasattr(e.response, 'text'):
                 print(f"Response: {e.response.text}")
+            return {}
+        except requests.exceptions.RequestException as e:
+            print(f"API Error: {e}")
             return {}
     
     # Spaces
@@ -316,7 +328,15 @@ class WorkspaceBuilder:
     def _add_development_custom_fields(self, list_id: str):
         """Add custom fields for development projects"""
         fields = [
-            {"name": "Project Value", "type": "currency"},
+            {
+                "name": "Project Value", 
+                "type": "currency",
+                "type_config": {
+                    "default": 0,
+                    "precision": 2,
+                    "currency_type": "EUR"  # Add this
+                }
+            },
             {"name": "Capacity/Size", "type": "short_text"},
             {
                 "name": "Development Stage",
@@ -365,16 +385,43 @@ class WorkspaceBuilder:
         ]
         
         for field in fields:
-            self.api.create_custom_field(list_id, field)
+            result = self.api.create_custom_field(list_id, field)
             time.sleep(0.2)
+            if not result:  # If failed, log and continue
+                print(f"      ⚠️  Failed to create field: {field['name']}")
+
     
     def _add_operations_custom_fields(self, list_id: str):
         """Add custom fields for operations projects"""
         fields = [
-            {"name": "Asset Value", "type": "currency"},
+            {
+                "name": "Asset Value", 
+                "type": "currency",
+                "type_config": {
+                    "default": 0,
+                    "precision": 2,
+                    "currency_type": "EUR"
+                }
+            },
             {"name": "Capacity/Size", "type": "short_text"},
-            {"name": "Revenue MTD", "type": "currency"},
-            {"name": "Revenue YTD", "type": "currency"},
+            {
+                "name": "Revenue MTD", 
+                "type": "currency",
+                "type_config": {
+                    "default": 0,
+                    "precision": 2,
+                    "currency_type": "EUR"
+                }
+            },
+            {
+                "name": "Revenue YTD", 
+                "type": "currency",
+                "type_config": {
+                    "default": 0,
+                    "precision": 2,
+                    "currency_type": "EUR"
+                }
+            },
             {"name": "Availability %", "type": "number"},
             {"name": "Last Inspection Date", "type": "date"},
             {"name": "Next Maintenance", "type": "date"},
@@ -404,8 +451,11 @@ class WorkspaceBuilder:
         ]
         
         for field in fields:
-            self.api.create_custom_field(list_id, field)
+            result = self.api.create_custom_field(list_id, field)
             time.sleep(0.2)
+            if not result:
+                print(f"      ⚠️  Failed to create field: {field['name']}")
+            
     
     def _setup_development_statuses(self, list_id: str):
         """Set up statuses for development lists"""
@@ -759,9 +809,12 @@ def main():
     """
     
     # Configuration
-    API_TOKEN = "YOUR_API_TOKEN"  # Get from: https://app.clickup.com/settings/apps
-    TEAM_ID = "YOUR_TEAM_ID"      # Get from: https://app.clickup.com/settings/teams
-    
+    from dotenv import load_dotenv
+    import os   
+    load_dotenv()
+    API_TOKEN = os.getenv("CLICKUP_API_TOKEN", "your_token_here") # Get from: https://app.clickup.com/settings/apps
+    TEAM_ID = os.getenv("CLICKUP_TEAM_ID", "your_team_id_here") # Get from: https://app.clickup.com/settings/teams
+
     # Initialize
     config = ClickUpConfig(API_TOKEN, TEAM_ID)
     api = ClickUpAPI(config)
