@@ -133,11 +133,22 @@ class ClickUpAPI:
         """Update statuses for a list"""
         # Get current statuses
         result = self._request("GET", f"list/{list_id}")
-        current_statuses = result.get("statuses", [])
         
-        # Clear existing and add new
+        if not result:
+            print(f"      ⚠️  Failed to get list info for status setup")
+            return False
+        
+        # Add new statuses - ClickUp will handle duplicates
         for status in statuses:
-            data = {"status": status["status"], "color": status["color"], "type": status.get("type", "custom")}
+            if not status.get("status"):  # Validate status name exists
+                print(f"      ⚠️  Skipping status with missing name")
+                continue
+                
+            data = {
+                "status": status["status"], 
+                "color": status.get("color", "#d3d3d3"), 
+                "type": status.get("type", "custom")
+            }
             self._request("POST", f"list/{list_id}/status", data)
         
         return True
