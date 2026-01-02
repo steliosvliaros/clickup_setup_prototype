@@ -28,7 +28,23 @@ from typing import Dict, List, Optional
 # CONFIGURATION
 # ============================================================================
 
-
+DEFAULT_SPACE_FEATURES = {
+        "due_dates": {
+            "enabled": True,
+            "start_date": True,
+            "remap_due_dates": True,
+            "remap_closed_due_date": True,
+        },
+        "custom_fields": {"enabled": True},
+        # optional, but commonly useful:
+        "time_tracking": {"enabled": True},
+        "tags": {"enabled": True},
+        "time_estimates": {"enabled": True},
+        "checklists": {"enabled": True},
+        "remap_dependencies": {"enabled": True},
+        "dependency_warning": {"enabled": True},
+        "portfolios": {"enabled": True},
+    }
 class ClickUpConfig:
     def __init__(self, api_token: str, team_id: str):
         self.api_token = api_token
@@ -38,6 +54,7 @@ class ClickUpConfig:
             "Authorization": api_token,
             "Content-Type": "application/json"
         }
+        self.default_space_features = DEFAULT_SPACE_FEATURES
 
 # ============================================================================
 # CLICKUP API WRAPPER
@@ -81,12 +98,17 @@ class ClickUpAPI:
             print(f"API Error: {e}")
             return {}
     
+    ''
     # Spaces
     def create_space(self, name: str) -> str:
-        """Create a new space"""
-        data = {"name": name, "multiple_assignees": True, "features": {"due_dates": {"enabled": True}}}
+        data = {
+            "name": name,
+            "multiple_assignees": True,
+            "features": self.config.default_space_features,
+        }
         result = self._request("POST", f"team/{self.config.team_id}/space", data)
         return result.get("id", "")
+
     
     def get_spaces(self) -> List[Dict]:
         """Get all spaces"""
