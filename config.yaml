@@ -1,459 +1,1488 @@
-# ClickUp Workspace Configuration
+# ClickUp Workspace Configuration - PV Operations Management System
+# Version: 1.0
+# Date: 2026-01-03
+# Owner: Director of Operations
+
 workspace:
-  name: "Asset Management & Development Company"
+  name: "[COMPANY] Asset Management"
+  plan: "Business"
+  timezone: "Europe/Athens"
+  currency: "EUR"
+  date_format: "DD/MM/YYYY"
+  first_day_of_week: "Monday"
+
+# ===================================================================
+# SPACE ARCHITECTURE
+# ===================================================================
 
 spaces:
-  - name: "Development Projects"
-    key: "development"
+  # ---------------------------------------------------------------
+  # SPACE 1: PV OPERATIONS (In Operation) - PRIMARY FOCUS
+  # ---------------------------------------------------------------
+  - name: "PV Operations"
+    key: "pv_operations"
+    icon: "☀️"
+    color: "#FF8C00"
+    privacy: "private"
+    permissions:
+      - role: "admin"
+        members: ["Director of Operations"]
+      - role: "member"
+        teams: ["O&M Team"]
+      - role: "view_only"
+        members: ["CEO", "Finance Team"]
+    
     folders:
-      - name: "Solar PV Development"
+      # Active Parks - Regional Grouping
+      - name: "Active Parks - Thessaly"
+        key: "parks_thessaly"
         lists:
-          - "Prefeasibility & Site Selection"
-          - "Land Acquisition"
+          - name: "COMPANY_PV10MW_SOLARIS_LARISSA"
+            type: "asset_operations"
+            default_assignee: "John Doe"  # PO
+            description: |
+              Project Owner: John Doe
+              Capacity: 10 MW
+              Commissioned: 2021-06-15
+              Region: Thessaly
+              Server Path: file://server/PV_Operations/COMPANY_PV10MW_SOLARIS_LARISSA/
+              Key Vendors: MonitorCo (monitoring), CleanPro (cleaning), SecureGuard (security)
+          - name: "COMPANY_PV15MW_APOLLO_THESSALY"
+            type: "asset_operations"
+            default_assignee: "Maria Papadopoulos"
+          - name: "COMPANY_PV8MW_HELIOS_THESSALY"
+            type: "asset_operations"
+            default_assignee: "Dimitris Kostas"
+          # ... repeat for ~15 parks in region
 
-          
-          - "Permitting & Licensing"
-          - "Engineering & Design"
-          - "Procurement"
-          - "Construction"
-          - "Commissioning"
-      - name: "Datacenters Development"
+      - name: "Active Parks - Attica"
+        key: "parks_attica"
         lists:
-          - "Prefeasibility & Site Selection"
-          - "Land Acquisition"
-          - "Permitting & Licensing"
-          - "Engineering & Design"
-          - "Procurement"
-          - "Construction"
-          - "Commissioning"
-      - name: "Hotels Development"
-        lists:
-          - "Prefeasibility & Site Selection"
-          - "Land Acquisition"
-          - "Permitting & Licensing"
-          - "Engineering & Design"
-          - "Procurement"
-          - "Construction"
-          - "Commissioning"
-      - name: "Hydroponic Farms Development"
-        lists:
-          - "Prefeasibility & Site Selection"
-          - "Land Acquisition"
-          - "Permitting & Licensing"
-          - "Engineering & Design"
-          - "Procurement"
-          - "Construction"
-          - "Commissioning"
+          - name: "COMPANY_PV12MW_ZEUS_ATHENS"
+            type: "asset_operations"
+          - name: "COMPANY_PV20MW_ATHENA_ATTICA"
+            type: "asset_operations"
+          # ... repeat for ~15 parks in region
 
-  - name: "Operations & Maintenance"
-    key: "operations"
+      # Vendor Management
+      - name: "Vendor Management"
+        key: "vendor_mgmt"
+        lists:
+          - name: "Security Vendors"
+            type: "vendor_tracking"
+          - name: "Cleaning Vendors"
+            type: "vendor_tracking"
+          - name: "Devegetation Vendors"
+            type: "vendor_tracking"
+          - name: "Monitoring & Repair Vendors"
+            type: "vendor_tracking"
+          - name: "Claims & Warranty Tracking"
+            type: "warranty_tracking"
+
+      # Scheduled Maintenance
+      - name: "Scheduled Maintenance"
+        key: "scheduled_maint"
+        lists:
+          - name: "Preventive Calendar 2025"
+            type: "preventive_maintenance"
+          - name: "Cleaning Schedule"
+            type: "cleaning_schedule"
+          - name: "Devegetation Schedule"
+            type: "devegetation_schedule"
+
+      # Reporting & KPIs
+      - name: "Reporting & KPIs"
+        key: "reporting"
+        lists:
+          - name: "Weekly Reports"
+            type: "reporting"
+          - name: "Monthly KPIs"
+            type: "reporting"
+          - name: "Quarterly Reviews"
+            type: "reporting"
+          - name: "Annual Summaries"
+            type: "reporting"
+
+  # ---------------------------------------------------------------
+  # SPACE 2: PV DEVELOPMENT (Pipeline)
+  # ---------------------------------------------------------------
+  - name: "PV Development"
+    key: "pv_development"
+    icon: "🏗️"
+    color: "#4169E1"
+    privacy: "private"
+    permissions:
+      - role: "admin"
+        members: ["Director of Operations"]
+      - role: "member"
+        teams: ["Development Team"]
+      - role: "view_only"
+        members: ["CEO", "O&M Team"]
+    
     folders:
-      - name: "Solar PV Operations"
+      - name: "Pre-Feasibility"
+        key: "prefeasibility"
         lists:
-          - "Performance Monitoring"
-          - "Maintenance Management"
-          - "Compliance & Reporting"
-          - "Asset Optimization"
-          - "Incident Management"
-      - name: "Wind Farms Operations"
+          - name: "Site Assessment & Screening"
+            type: "development"
+          - name: "Initial Financial Modeling"
+            type: "development"
+
+      - name: "Land Acquisition"
+        key: "land_acquisition"
         lists:
-          - "Performance Monitoring"
-          - "Maintenance Management"
-          - "Compliance & Reporting"
-          - "Asset Optimization"
-          - "Incident Management"
+          - name: "Land Negotiation"
+            type: "development"
+          - name: "Legal Due Diligence"
+            type: "development"
+
+      - name: "Permitting"
+        key: "permitting"
+        lists:
+          - name: "Environmental Permits"
+            type: "development"
+          - name: "Grid Connection Permits"
+            type: "development"
+          - name: "Building Permits"
+            type: "development"
+
+      - name: "Procurement & Build"
+        key: "procurement_build"
+        lists:
+          - name: "EPC Procurement"
+            type: "development"
+          - name: "Equipment Procurement"
+            type: "development"
+          - name: "Construction Monitoring"
+            type: "development"
+
+      - name: "Pipeline Projects"
+        key: "pipeline"
+        lists:
+          # 30 development projects as individual tasks/lists
+          - name: "Development Pipeline 2025"
+            type: "development"
+
+  # ---------------------------------------------------------------
+  # SPACE 3: FINANCE & PAYMENTS
+  # ---------------------------------------------------------------
+  - name: "Finance & Payments"
+    key: "finance"
+    icon: "💰"
+    color: "#228B22"
+    privacy: "private"
+    permissions:
+      - role: "admin"
+        members: ["Finance Lead", "Director of Operations"]
+      - role: "member"
+        teams: ["Finance Team"]
+      - role: "view_only"
+        members: ["CEO", "O&M Team"]
+    
+    folders:
+      - name: "PV O&M Invoices"
+        key: "om_invoices"
+        lists:
+          - name: "Pending Approvals"
+            type: "invoice_processing"
+          - name: "Payment Queue"
+            type: "invoice_processing"
+          - name: "Paid & Archived"
+            type: "invoice_processing"
+
+      - name: "CAPEX Requests"
+        key: "capex"
+        lists:
+          - name: "CAPEX Pipeline"
+            type: "capex_tracking"
+          - name: "Board Approval Required"
+            type: "capex_tracking"
+
+      - name: "Budget Tracking"
+        key: "budget"
+        lists:
+          - name: "Monthly Budget Reconciliation"
+            type: "budget_tracking"
+          - name: "Annual Budget Planning"
+            type: "budget_tracking"
+
+  # ---------------------------------------------------------------
+  # SPACE 4: WIND OPERATIONS (Future Ready)
+  # ---------------------------------------------------------------
+  - name: "Wind Operations"
+    key: "wind_operations"
+    icon: "💨"
+    color: "#87CEEB"
+    privacy: "private"
+    status: "coming_soon"
+    note: "Mirror structure from PV Operations; activate when ready"
+
+  # ---------------------------------------------------------------
+  # SPACE 5: OTHER ASSETS (Hotels, DC, Hydro)
+  # ---------------------------------------------------------------
+  - name: "Other Assets"
+    key: "other_assets"
+    icon: "🏨"
+    color: "#9370DB"
+    privacy: "private"
+    folders:
       - name: "Hotels Operations"
         lists:
-          - "Performance Monitoring"
-          - "Maintenance Management"
-          - "Compliance & Reporting"
-          - "Asset Optimization"
-          - "Incident Management"
+          - name: "Hotel Portfolio Management"
+      - name: "Datacenter Operations"
+        lists:
+          - name: "DC Portfolio Management"
+      - name: "Hydroponic Farms"
+        lists:
+          - name: "Hydro Portfolio Management"
 
-  - name: "Corporate & Shared"
-    key: "corporate"
-    folders:
-      - name: "Financial Management"
-        lists:
-          - "Budget Tracking"
-          - "Financial Reporting"
-          - "Invoicing"
-      - name: "HR & Administration"
-        lists:
-          - "Recruitment"
-          - "Team Management"
-          - "Admin Tasks"
-      - name: "Partner Management"
-        lists:
-          - "Partner Onboarding"
-          - "Performance Review"
-          - "Contracts"
-      - name: "Strategic Initiatives"
-        lists:
-          - "Strategic Projects"
-          - "Business Development"
+# ===================================================================
+# STATUS WORKFLOWS
+# ===================================================================
 
 statuses:
-  development:
-    - name: "Not Started"
-      color: "#d3d3d3"
-      type: "open"
-    - name: "In Planning"
-      color: "#6fddff"
-      type: "custom"
-    - name: "Awaiting Partner"
-      color: "#b973ff"
-      type: "custom"
-    - name: "Partner In Progress"
-      color: "#ffcc00"
-      type: "custom"
-    - name: "Review Required"
-      color: "#ff9900"
-      type: "custom"
-    - name: "Completed"
-      color: "#00cc66"
-      type: "closed"
-    - name: "Blocked"
-      color: "#ff0000"
-      type: "custom"
-      
-  operations:
-    - name: "Scheduled"
-      color: "#6fddff"
-      type: "open"
-    - name: "In Progress"
-      color: "#ffcc00"
-      type: "custom"
-    - name: "Partner Assigned"
-      color: "#b973ff"
-      type: "custom"
-    - name: "Under Review"
-      color: "#ff9900"
-      type: "custom"
-    - name: "Completed"
-      color: "#00cc66"
-      type: "closed"
-    - name: "Issue/Escalated"
-      color: "#ff0000"
-      type: "custom"
+  # Corrective Maintenance Workflow (PV Park Lists)
+  corrective_maintenance:
+    workflow_name: "Corrective Maintenance Workflow"
+    applies_to: ["asset_operations"]
+    statuses:
+      - name: "Notified"
+        color: "#FF0000"
+        type: "open"
+        description: "Vendor reported issue"
+      - name: "Site Visit Scheduled"
+        color: "#FFD700"
+        type: "custom"
+        description: "Technician appointment set"
+      - name: "Awaiting Quote"
+        color: "#FF8C00"
+        type: "custom"
+        description: "On-site assessment done, waiting for cost"
+      - name: "Pending Approval"
+        color: "#4169E1"
+        type: "custom"
+        description: "Quote received, awaiting Director/CEO"
+      - name: "Approved - Not Started"
+        color: "#9370DB"
+        type: "custom"
+        description: "Approved, vendor not yet started"
+      - name: "In Progress"
+        color: "#32CD32"
+        type: "active"
+        description: "Work underway"
+      - name: "Completed - Pending Payment"
+        color: "#696969"
+        type: "active"
+        description: "Work done, awaiting payment"
+      - name: "Closed"
+        color: "#D3D3D3"
+        type: "closed"
+        description: "Paid and documented"
+      - name: "Rejected/Cancelled"
+        color: "#DC143C"
+        type: "closed"
+        description: "Not approved or cancelled"
+
+  # Preventive Maintenance Workflow
+  preventive_maintenance:
+    workflow_name: "Preventive / Scheduled Maintenance"
+    applies_to: ["preventive_maintenance", "cleaning_schedule", "devegetation_schedule"]
+    statuses:
+      - name: "Scheduled"
+        color: "#4169E1"
+        type: "open"
+        description: "Future date set"
+      - name: "Due This Week"
+        color: "#FFD700"
+        type: "custom"
+        description: "Within 7 days"
+      - name: "Overdue"
+        color: "#FF0000"
+        type: "custom"
+        description: "Past due date"
+      - name: "Completed"
+        color: "#32CD32"
+        type: "closed"
+        description: "Checklist verified"
+      - name: "Report Pending"
+        color: "#FF8C00"
+        type: "active"
+        description: "Work done, report not submitted"
+
+  # CAPEX Workflow
+  capex_workflow:
+    workflow_name: "CAPEX Works"
+    applies_to: ["capex_tracking"]
+    statuses:
+      - name: "Identified"
+        color: "#FFD700"
+        type: "open"
+        description: "Opportunity spotted"
+      - name: "Business Case"
+        color: "#FF8C00"
+        type: "custom"
+        description: "Vendor quotes + ROI analysis"
+      - name: "Director Review"
+        color: "#4169E1"
+        type: "custom"
+        description: "Awaiting Director"
+      - name: "CEO Review"
+        color: "#9370DB"
+        type: "custom"
+        description: "Awaiting CEO approval"
+      - name: "Approved"
+        color: "#32CD32"
+        type: "active"
+        description: "Greenlit"
+      - name: "In Execution"
+        color: "#228B22"
+        type: "active"
+        description: "Work in progress"
+      - name: "Commissioned"
+        color: "#D3D3D3"
+        type: "closed"
+        description: "Complete & operational"
+      - name: "Rejected"
+        color: "#DC143C"
+        type: "closed"
+        description: "Not approved"
+
+  # Invoice & Payment Workflow
+  invoice_workflow:
+    workflow_name: "Invoicing & Payments"
+    applies_to: ["invoice_processing"]
+    statuses:
+      - name: "Invoice Received"
+        color: "#4169E1"
+        type: "open"
+        description: "Vendor submitted"
+      - name: "Verified"
+        color: "#FFD700"
+        type: "custom"
+        description: "PO confirmed work done"
+      - name: "Approved for Payment"
+        color: "#32CD32"
+        type: "active"
+        description: "Finance cleared"
+      - name: "50% Paid"
+        color: "#FF8C00"
+        type: "active"
+        description: "First installment"
+      - name: "100% Paid"
+        color: "#D3D3D3"
+        type: "closed"
+        description: "Complete"
+      - name: "Disputed"
+        color: "#DC143C"
+        type: "custom"
+        description: "Issue with invoice"
+
+  # Warranty/Claims Workflow
+  warranty_workflow:
+    workflow_name: "Warranty/Claims"
+    applies_to: ["warranty_tracking"]
+    statuses:
+      - name: "Investigating"
+        color: "#FFD700"
+        type: "open"
+        description: "Determining eligibility"
+      - name: "Claim Filed"
+        color: "#4169E1"
+        type: "custom"
+        description: "Submitted to vendor/manufacturer"
+      - name: "Awaiting Response"
+        color: "#FF8C00"
+        type: "custom"
+        description: "Vendor reviewing"
+      - name: "Approved"
+        color: "#32CD32"
+        type: "active"
+        description: "Claim accepted"
+      - name: "Repair in Progress"
+        color: "#228B22"
+        type: "active"
+        description: "Work underway"
+      - name: "Resolved"
+        color: "#D3D3D3"
+        type: "closed"
+        description: "Complete"
+      - name: "Rejected"
+        color: "#DC143C"
+        type: "closed"
+        description: "Claim denied"
+
+# ===================================================================
+# CUSTOM FIELDS DICTIONARY (30+ Fields)
+# ===================================================================
 
 custom_fields:
-  development:
-    - name: "Project Value"
-      type: "currency"
-      type_config:
-        default: 0
-        precision: 2
-        currency_type: "EUR"
-    - name: "Capacity/Size"
-      type: "short_text"
-    - name: "Development Stage"
-      type: "drop_down"
-      type_config:
-        options:
-          - name: "Prefeasibility"
-            color: "#6fddff"
-          - name: "Land Acquisition"
-            color: "#b4e7ff"
-          - name: "Permitting"
-            color: "#7ee37e"
-          - name: "Engineering"
-            color: "#ffcc00"
-          - name: "Procurement"
-            color: "#ff9900"
-          - name: "Construction"
-            color: "#ff6600"
-          - name: "Commissioning"
-            color: "#00cc66"
-    - name: "Expected COD"
-      type: "date"
-    - name: "Location"
-      type: "short_text"
-    - name: "Lead Partner"
-      type: "short_text"
-    - name: "Budget Status"
-      type: "drop_down"
-      type_config:
-        options:
-          - name: "On Budget"
-            color: "#00cc66"
-          - name: "5% Over"
-            color: "#ffcc00"
-          - name: "10%+ Over"
-            color: "#ff3300"
-          - name: "Under Budget"
-            color: "#00cc66"
-    - name: "Risk Level"
-      type: "drop_down"
-      type_config:
-        options:
-          - name: "Low"
-            color: "#00cc66"
-          - name: "Medium"
-            color: "#ffcc00"
-          - name: "High"
-            color: "#ff6600"
-          - name: "Critical"
-            color: "#ff0000"
-    - name: "Last Partner Meeting"
-      type: "date"
-    - name: "Next Milestone"
-      type: "short_text"
+  # Asset & Ownership Fields
+  asset_identification:
+    - name: "Asset ID"
+      type: "dropdown"
+      applies_to: ["asset_operations", "capex_tracking", "invoice_processing"]
+      required: true
+      options:
+        # All 30 PV parks
+        - "COMPANY_PV10MW_SOLARIS_LARISSA"
+        - "COMPANY_PV15MW_APOLLO_THESSALY"
+        - "COMPANY_PV8MW_HELIOS_THESSALY"
+        - "COMPANY_PV12MW_ZEUS_ATHENS"
+        - "COMPANY_PV20MW_ATHENA_ATTICA"
+        # ... add all 30 parks
+      description: "Unique identifier for PV park using naming convention"
 
-  operations:
-    - name: "Asset Value"
-      type: "currency"
-      type_config:
-        default: 0
-        precision: 2
-        currency_type: "EUR"
-    - name: "Capacity/Size"
-      type: "short_text"
-    - name: "Revenue MTD"
-      type: "currency"
-      type_config:
-        default: 0
-        precision: 2
-        currency_type: "EUR"
-    - name: "Revenue YTD"
-      type: "currency"
-      type_config:
-        default: 0
-        precision: 2
-        currency_type: "EUR"
-    - name: "Availability %"
+    - name: "Project Owner (PO)"
+      type: "person"
+      applies_to: ["asset_operations", "preventive_maintenance"]
+      required: true
+      description: "O&M PM responsible for this asset"
+
+    - name: "Region"
+      type: "dropdown"
+      applies_to: ["asset_operations"]
+      options:
+        - name: "Thessaly"
+          color: "#4169E1"
+        - name: "Attica"
+          color: "#32CD32"
+        - name: "Crete"
+          color: "#FF8C00"
+        - name: "Peloponnese"
+          color: "#9370DB"
+        - name: "Macedonia"
+          color: "#FFD700"
+
+    - name: "Park Capacity (MW)"
       type: "number"
-    - name: "Last Inspection Date"
+      applies_to: ["asset_operations"]
+      precision: 1
+      description: "Installed capacity in megawatts"
+
+  # Work Classification Fields
+  work_classification:
+    - name: "Work Type"
+      type: "dropdown"
+      applies_to: ["asset_operations", "preventive_maintenance", "capex_tracking"]
+      required: true
+      options:
+        - name: "Corrective"
+          color: "#FF0000"
+        - name: "Preventive"
+          color: "#4169E1"
+        - name: "CAPEX"
+          color: "#9370DB"
+        - name: "Emergency"
+          color: "#DC143C"
+        - name: "Warranty"
+          color: "#FF8C00"
+        - name: "Claims"
+          color: "#FFD700"
+
+    - name: "System/Component"
+      type: "dropdown"
+      applies_to: ["asset_operations"]
+      options:
+        - name: "Inverter"
+          color: "#FF0000"
+        - name: "Transformer"
+          color: "#FF8C00"
+        - name: "Panels"
+          color: "#FFD700"
+        - name: "Tracker"
+          color: "#32CD32"
+        - name: "Monitoring"
+          color: "#4169E1"
+        - name: "Security"
+          color: "#9370DB"
+        - name: "Electrical"
+          color: "#FF6347"
+        - name: "Civil"
+          color: "#8B4513"
+
+    - name: "Priority"
+      type: "dropdown"
+      applies_to: ["asset_operations", "capex_tracking"]
+      required: true
+      options:
+        - name: "🔴 Critical (24h)"
+          color: "#FF0000"
+          sla_hours: 24
+        - name: "🟠 High (3d)"
+          color: "#FF8C00"
+          sla_hours: 72
+        - name: "🟡 Medium (7d)"
+          color: "#FFD700"
+          sla_hours: 168
+        - name: "🟢 Low (14d)"
+          color: "#32CD32"
+          sla_hours: 336
+
+    - name: "Risk/Safety"
+      type: "dropdown"
+      applies_to: ["asset_operations", "capex_tracking"]
+      options:
+        - name: "No Risk"
+          color: "#32CD32"
+        - name: "Medium Risk"
+          color: "#FFD700"
+        - name: "High Risk"
+          color: "#FF8C00"
+        - name: "Safety Incident"
+          color: "#FF0000"
+
+  # Vendor Management Fields
+  vendor_fields:
+    - name: "Vendor"
+      type: "dropdown"
+      applies_to: ["asset_operations", "preventive_maintenance", "invoice_processing", "vendor_tracking"]
+      required: true
+      options:
+        - "MonitorCo"
+        - "CleanPro"
+        - "SecureGuard"
+        - "VegControl"
+        - "TechRepair Services"
+        - "Hellenic Solar Maintenance"
+        # Add all vendors
+
+    - name: "Vendor SLA (hours)"
+      type: "number"
+      applies_to: ["asset_operations"]
+      description: "Contractual response time in hours"
+
+    - name: "SLA Status"
+      type: "dropdown"
+      applies_to: ["asset_operations"]
+      formula_driven: true
+      options:
+        - name: "On Time"
+          color: "#32CD32"
+        - name: "At Risk"
+          color: "#FFD700"
+        - name: "Breached"
+          color: "#FF0000"
+
+  # Financial Fields
+  financial_fields:
+    - name: "Estimate €"
+      type: "currency"
+      applies_to: ["asset_operations", "capex_tracking", "invoice_processing"]
+      required: true
+      currency: "EUR"
+      precision: 2
+      description: "Total estimated or actual cost"
+
+    - name: "CAPEX/OPEX"
+      type: "dropdown"
+      applies_to: ["asset_operations", "capex_tracking", "invoice_processing"]
+      required: true
+      options:
+        - name: "OPEX"
+          color: "#4169E1"
+          description: "< €15,000 or routine repair"
+        - name: "CAPEX"
+          color: "#9370DB"
+          description: "≥ €15,000 or asset enhancement"
+
+    - name: "Approval Stage"
+      type: "dropdown"
+      applies_to: ["asset_operations", "capex_tracking"]
+      options:
+        - name: "Not Required"
+          color: "#D3D3D3"
+        - name: "Awaiting Director"
+          color: "#4169E1"
+        - name: "Awaiting CEO"
+          color: "#9370DB"
+        - name: "Approved"
+          color: "#32CD32"
+        - name: "Rejected"
+          color: "#DC143C"
+
+    - name: "Approved By"
+      type: "person"
+      applies_to: ["asset_operations", "capex_tracking"]
+      multi_select: true
+
+    - name: "Approval Date"
       type: "date"
-    - name: "Next Maintenance"
-      type: "date"
-    - name: "O&M Partner"
+      applies_to: ["asset_operations", "capex_tracking"]
+
+    - name: "Payment Stage"
+      type: "dropdown"
+      applies_to: ["invoice_processing", "asset_operations"]
+      options:
+        - name: "0% Paid"
+          color: "#FF0000"
+        - name: "50% Paid"
+          color: "#FFD700"
+        - name: "100% Paid"
+          color: "#32CD32"
+
+    - name: "Invoice #"
       type: "short_text"
-    - name: "Compliance Status"
-      type: "drop_down"
-      type_config:
-        options:
-          - name: "Compliant"
-            color: "#00cc66"
-          - name: "Minor Issues"
-            color: "#ffcc00"
-          - name: "Critical"
-            color: "#ff0000"
-    - name: "Performance vs Target"
-      type: "drop_down"
-      type_config:
-        options:
-          - name: "Above Target"
-            color: "#00cc66"
-          - name: "On Target"
-            color: "#6fddff"
-          - name: "Below Target"
-            color: "#ff6600"
+      applies_to: ["invoice_processing", "asset_operations"]
+      description: "Vendor invoice number"
 
-# Automations Configuration
-automations:
-  development:
-    - name: "Auto-notify on status change to Blocked"
-      trigger:
-        type: "status_updated"
-        status: "Blocked"
-      action:
-        type: "post_comment"
-        comment: "⚠️ Task is blocked! Please review and add blocker details in the description."
-    
-    - name: "Auto-notify on high priority overdue"
-      trigger:
-        type: "task_overdue"
-        priority: [1, 2]
-      action:
-        type: "post_comment"
-        comment: "🚨 High priority task is overdue! Please update status or extend deadline."
-    
-    - name: "Auto-move to Review when Partner In Progress completed"
-      trigger:
-        type: "status_updated"
-        from_status: "Partner In Progress"
-        to_status: "Completed"
-      action:
-        type: "change_status"
-        status: "Review Required"
-    
-    - name: "Notify when task moves to Awaiting Partner"
-      trigger:
-        type: "status_updated"
-        status: "Awaiting Partner"
-      action:
-        type: "post_comment"
-        comment: "📧 Waiting for partner action. Please ensure partner is notified and track response time."
+    - name: "PO #"
+      type: "short_text"
+      applies_to: ["capex_tracking", "invoice_processing"]
+      description: "Purchase order number"
 
-  operations:
-    - name: "Escalate critical issues"
-      trigger:
-        type: "status_updated"
-        status: "Issue/Escalated"
-      action:
-        type: "post_comment"
-        comment: "🔴 CRITICAL: Issue escalated! Immediate attention required. Update every 4 hours."
-    
-    - name: "Remind for maintenance tasks"
-      trigger:
-        type: "due_date_approaching"
-        days_before: 3
-        list_contains: "Maintenance"
-      action:
-        type: "post_comment"
-        comment: "⏰ Maintenance task due in 3 days. Ensure contractor is scheduled and materials are available."
-    
-    - name: "Auto-comment on completion"
-      trigger:
-        type: "status_updated"
-        status: "Completed"
-      action:
-        type: "post_comment"
-        comment: "✅ Task completed. Please update custom fields with final data and attach documentation."
-    
-    - name: "Partner assignment notification"
-      trigger:
-        type: "status_updated"
-        status: "Partner Assigned"
-      action:
-        type: "post_comment"
-        comment: "👥 Assigned to partner. Track progress and set follow-up reminder."
+    - name: "Payment Due Date"
+      type: "date"
+      applies_to: ["invoice_processing"]
 
-# Views Configuration
+    - name: "50% Payment Date"
+      type: "date"
+      applies_to: ["invoice_processing"]
+
+    - name: "100% Payment Date"
+      type: "date"
+      applies_to: ["invoice_processing"]
+
+  # Technical Performance Fields
+  technical_fields:
+    - name: "Downtime Hours"
+      type: "number"
+      applies_to: ["asset_operations"]
+      precision: 1
+      description: "Total hours equipment/park offline"
+
+    - name: "Energy Loss (MWh)"
+      type: "number"
+      applies_to: ["asset_operations"]
+      precision: 2
+      description: "Estimated energy not generated due to downtime"
+
+    - name: "Root Cause"
+      type: "dropdown"
+      applies_to: ["asset_operations"]
+      required_on_close: true
+      options:
+        - name: "Equipment Failure"
+          color: "#FF0000"
+        - name: "Weather"
+          color: "#4169E1"
+        - name: "Aging"
+          color: "#FF8C00"
+        - name: "Installation Defect"
+          color: "#DC143C"
+        - name: "External"
+          color: "#9370DB"
+        - name: "Vandalism"
+          color: "#8B0000"
+        - name: "Grid Issue"
+          color: "#FFD700"
+
+    - name: "Response Time (hours)"
+      type: "formula"
+      applies_to: ["asset_operations"]
+      formula: "HOURS({{Completion Date}} - {{Task Created Date}})"
+      description: "Auto-calculated from task creation to completion"
+
+  # Documentation & Compliance Fields
+  documentation_fields:
+    - name: "Server Path"
+      type: "url"
+      applies_to: ["asset_operations", "capex_tracking", "invoice_processing", "preventive_maintenance"]
+      required: true
+      description: "Link to server folder/file"
+      placeholder: "file://server/PV_Operations/[ASSET]/[CATEGORY]/"
+
+    - name: "Email Thread Link"
+      type: "url"
+      applies_to: ["asset_operations"]
+      description: "Link to original notification email (Outlook/Gmail)"
+
+    - name: "Scheduled Date"
+      type: "date"
+      applies_to: ["preventive_maintenance"]
+      description: "Planned date for preventive work"
+
+    - name: "Completion Date"
+      type: "date"
+      applies_to: ["asset_operations", "capex_tracking", "preventive_maintenance"]
+      required_on_close: true
+
+  # Warranty Fields
+  warranty_fields:
+    - name: "Warranty Eligible"
+      type: "checkbox"
+      applies_to: ["asset_operations"]
+      description: "Is this issue covered by warranty?"
+
+    - name: "Warranty Claim #"
+      type: "short_text"
+      applies_to: ["warranty_tracking"]
+      description: "Manufacturer warranty claim reference"
+
+# ===================================================================
+# TASK TEMPLATES
+# ===================================================================
+
+task_templates:
+  # Template 1: Corrective Maintenance Job
+  - name: "Corrective Maintenance Job"
+    applies_to: ["asset_operations"]
+    default_name: "[ASSET] - [SYSTEM] - [FAULT] - [DATE]"
+    default_status: "Notified"
+    description: |
+      ## Issue Notification
+      - **Reported By:** [Vendor Name]
+      - **Date/Time Notified:** [Auto-fill]
+      - **Email Thread:** [Paste link]
+
+      ## Symptoms & Impact
+      - Describe the fault: 
+      - Production impact: [Downtime hours, energy loss]
+      - Safety concerns: 
+
+      ## Site Visit Details
+      - **Scheduled Date:** 
+      - **Technician:** 
+      - **Findings:** 
+
+      ## Vendor Quote
+      - **Scope of Work:** 
+      - **Materials Required:** 
+      - **Estimated Cost:** €
+      - **Timeline:** 
+      - **Server Link to Quote:** 
+
+      ## Approval Decision
+      - [ ] Director approved (if <€5,000)
+      - [ ] Director + CEO approved (if CAPEX ≥€15,000)
+      - **Approved Date:** 
+
+      ## Execution
+      - **Start Date:** 
+      - **Completion Date:** 
+      - **Actual Cost:** €
+      - **Root Cause:** 
+
+      ## Payment
+      - [ ] 50% paid - Date: [  ] Invoice: [  ]
+      - [ ] 100% paid - Date: [  ] Invoice: [  ]
+    
+    custom_fields:
+      "Work Type": "Corrective"
+      "Priority": "🟠 High (3d)"
+      "CAPEX/OPEX": "OPEX"
+      "Approval Stage": "Not Required"
+    
+    checklist:
+      - "Vendor notified issue acknowledged"
+      - "Site visit scheduled"
+      - "Quote received and reviewed"
+      - "Approval obtained (attach approval email)"
+      - "Work commenced"
+      - "Work completed - photos uploaded"
+      - "Completion checklist verified"
+      - "Invoice received"
+      - "Payment processed"
+
+  # Template 2: Preventive Maintenance Visit
+  - name: "Preventive Maintenance Visit"
+    applies_to: ["preventive_maintenance"]
+    default_name: "[ASSET] - [VENDOR] - [SERVICE] - [SCHEDULED DATE]"
+    default_status: "Scheduled"
+    description: |
+      ## Service Contract Reference
+      - Vendor: [MonitorCo, CleanPro, etc.]
+      - Service Type: [Quarterly inspection, Annual audit, etc.]
+      - Contract SLA: [Response time, report delivery timeline]
+
+      ## Pre-Visit Checklist
+      - [ ] Vendor notified 1 week in advance
+      - [ ] Site access arranged
+      - [ ] Safety briefing confirmed
+      - [ ] Equipment list provided to vendor
+
+      ## Visit Execution
+      - **Actual Visit Date:** 
+      - **Technicians:** 
+      - **Duration:** 
+
+      ## Report Review
+      - [ ] Vendor report received (deadline: __ days post-visit)
+      - **Server Link:** file://server/PV_Operations/[ASSET]/Preventive/[FILE]
+      - **Key Findings:** 
+      - **Follow-up Actions Required:** 
+
+      ## Corrective Actions Identified
+      - [ ] Create corrective task(s) if issues found
+      - Link to corrective tasks: #[task IDs]
+    
+    custom_fields:
+      "Work Type": "Preventive"
+    
+    checklist:
+      - "Vendor notified 1 week in advance"
+      - "Site access arranged"
+      - "Safety briefing confirmed"
+      - "Equipment list provided to vendor"
+      - "Vendor report received"
+      - "Report reviewed and filed"
+
+  # Template 3: Vendor Report Review
+  - name: "Vendor Report Review"
+    applies_to: ["asset_operations", "vendor_tracking"]
+    default_name: "Vendor Report Review - [VENDOR] - [ASSET] - [PERIOD]"
+    description: |
+      ## Report Details
+      - **Vendor:** 
+      - **Report Period:** 
+      - **Submission Date:** 
+      - **Contract Deadline:** 
+      - **Status:** ⏰ On Time / 🔴 Late
+
+      ## Content Review Checklist
+      - [ ] Production data matches monitoring system
+      - [ ] All contractual KPIs reported
+      - [ ] Issues/alarms documented
+      - [ ] Recommendations provided
+      - [ ] Photos/evidence attached
+
+      ## Findings & Actions
+      **Key Metrics:**
+      - Availability: ___%
+      - Performance Ratio: ___%
+      - Downtime: ___ hours
+      - Alarms: ___ (list critical ones)
+
+      **Action Items:**
+      - [ ] Create corrective tasks for identified issues
+      - [ ] Request clarification from vendor (if needed)
+      - [ ] Escalate to Director (if critical)
+
+      ## Approval
+      - [ ] Report accepted by PO
+      - [ ] Report filed to server
+      - **Server Path:** file://server/...
+
+  # Template 4: Invoice Approval
+  - name: "Invoice Approval"
+    applies_to: ["invoice_processing"]
+    default_name: "INV-[VENDOR]-[ASSET]-[DATE]"
+    default_status: "Invoice Received"
+    description: |
+      ## Invoice Details
+      - **Invoice #:** 
+      - **Amount:** €
+      - **Vendor:** 
+      - **Related Work:** [Link to corrective/preventive task]
+      - **Invoice Date:** 
+      - **Due Date:** 
+
+      ## Verification Checklist
+      - [ ] Work completed as agreed (link to completion task)
+      - [ ] Photos/evidence reviewed
+      - [ ] Scope matches quote
+      - [ ] Pricing matches approval
+      - [ ] No disputes or issues
+      - [ ] PO signed off
+
+      ## Approval Routing
+      - [ ] PO verified
+      - [ ] Finance reviewed
+      - [ ] Director approved (if required)
+
+      ## Payment Execution
+      - **Payment Type:** 🔶 50% Upfront / 🔷 50% Final / ⚫ 100% Single
+      - [ ] 50% Payment: Date [___] Ref [___]
+      - [ ] 100% Payment: Date [___] Ref [___]
+    
+    custom_fields:
+      "Payment Stage": "0% Paid"
+    
+    checklist:
+      - "Attach invoice PDF to task"
+      - "Link to server path"
+      - "Verify against original quote"
+      - "Submit to Finance for payment"
+      - "Confirm payment processed"
+
+  # Template 5: CAPEX Request
+  - name: "CAPEX Request"
+    applies_to: ["capex_tracking"]
+    default_name: "[ASSET] - CAPEX - [DESCRIPTION]"
+    default_status: "Identified"
+    description: |
+      ## Business Case
+      **Project Title:** [e.g., String Monitoring Upgrade]
+      **Asset:** COMPANY_PV10MW_SOLARIS_LARISSA
+      **Proposed By:** [PO Name]
+      **Date:** 
+
+      ## Problem Statement
+      - Current situation: 
+      - Issue/opportunity: 
+      - Impact on operations: 
+
+      ## Proposed Solution
+      - Description: 
+      - Vendor/supplier: 
+      - Technical specs: 
+
+      ## Financial Analysis
+      - **Estimated Cost:** €
+      - **OPEX savings:** €/year
+      - **Payback period:** __ years
+      - **NPV / IRR:** (if calculated)
+
+      ## Supporting Documents
+      - [ ] Vendor quote attached
+      - [ ] Technical drawings/specs
+      - [ ] Alternative options considered
+      - **Server Path:** file://server/PV_Operations/[ASSET]/CAPEX/
+
+      ## Approval Process
+      - [ ] Director review scheduled
+      - [ ] CEO review scheduled (if ≥€15k)
+      - [ ] Board approval (if >€50k, specify threshold)
+
+      ## Decision
+      - **Decision:** ✅ Approved / 🚫 Rejected / ⏸️ Deferred
+      - **Approved By:** 
+      - **Approval Date:** 
+      - **Conditions/Notes:** 
+
+      ## Execution Plan (if approved)
+      - **Start Date:** 
+      - **Completion Date:** 
+      - **Responsible:** 
+      - **Milestones:** 
+    
+    custom_fields:
+      "Work Type": "CAPEX"
+      "CAPEX/OPEX": "CAPEX"
+      "Approval Stage": "Not Required"
+    
+    checklist:
+      - "Gather vendor quotes (min. 2)"
+      - "Prepare financial model"
+      - "Director presentation scheduled"
+      - "CEO presentation (if needed)"
+      - "PO issued"
+      - "Work commenced"
+      - "Commissioning completed"
+      - "As-built documentation filed"
+
+# ===================================================================
+# CLICKUP DOC TEMPLATES
+# ===================================================================
+
+doc_templates:
+  - name: "Weekly Report Template"
+    applies_to: ["asset_operations"]
+    filename_format: "[ASSET]_WeeklyReport_W[##]_[DATE]"
+    content_structure:
+      - section: "Executive Summary"
+        fields: ["Overall Status", "Production", "Availability", "Critical Issues"]
+      - section: "Production Performance"
+        table: ["Metric", "Actual", "Budget", "Variance"]
+      - section: "Work This Week"
+        subsections: ["Completed Tasks", "In Progress", "Upcoming"]
+      - section: "Issues & Concerns"
+      - section: "Vendor Performance"
+      - section: "Financial Summary"
+      - section: "Photos & Evidence"
+      - section: "Next Week Priorities"
+
+  - name: "Monthly KPI Report Template"
+    applies_to: ["asset_operations"]
+    filename_format: "[ASSET]_MonthlyKPI_[MONTH]_[DATE]"
+    content_structure:
+      - section: "Production KPIs"
+        table: ["KPI", "Target", "Actual", "Status", "YTD"]
+      - section: "Maintenance KPIs"
+      - section: "Financial KPIs"
+      - section: "Incident Analysis"
+      - section: "Vendor Performance"
+      - section: "Actions for Next Month"
+
+  - name: "Quarterly Review Template"
+    applies_to: ["reporting"]
+    filename_format: "AllParks_QuarterlyReview_Q[#]-[YEAR]_[DATE]"
+    content_structure:
+      - section: "Portfolio Overview"
+      - section: "Top Performers"
+      - section: "Underperformers"
+      - section: "Maintenance Summary"
+      - section: "CAPEX Pipeline"
+      - section: "Financial Summary"
+      - section: "Vendor Scorecard"
+      - section: "Strategic Initiatives"
+      - section: "Risks & Mitigations"
+
+  - name: "Annual Summary Template"
+    applies_to: ["reporting"]
+    filename_format: "AllParks_AnnualSummary_[YEAR]_[DATE]"
+
+  - name: "Vendor Performance Review Template"
+    applies_to: ["vendor_tracking"]
+    filename_format: "VendorReview_[VENDOR]_[YEAR]_Annual"
+    content_structure:
+      - section: "Contract Summary"
+      - section: "Performance Metrics"
+      - section: "Strengths"
+      - section: "Areas for Improvement"
+      - section: "Cost Analysis"
+      - section: "Incidents & Disputes"
+      - section: "Recommendation for Next Year"
+
+# ===================================================================
+# VIEWS CONFIGURATION
+# ===================================================================
+
 views:
-  development:
-    - name: "Director Dashboard"
-      type: "board"
-      grouping: "status"
-      filters:
-        priority: [1, 2]
-      columns:
-        - "Task Name"
-        - "Development Stage"
-        - "Project Value"
-        - "Risk Level"
-        - "Due Date"
-    
-    - name: "Partner Coordination Timeline"
-      type: "timeline"
-      grouping: "Lead Partner"
-      date_field: "Due Date"
-      filters:
-        status: ["Awaiting Partner", "Partner In Progress"]
-    
-    - name: "Budget Overview"
-      type: "table"
-      grouping: "Budget Status"
-      columns:
-        - "Task Name"
-        - "Project Value"
-        - "Budget Status"
-        - "Development Stage"
-        - "Risk Level"
-        - "Lead Partner"
-    
-    - name: "Risk Management"
-      type: "board"
-      grouping: "Risk Level"
-      filters:
-        status: ["In Planning", "Awaiting Partner", "Partner In Progress", "Blocked"]
-      columns:
-        - "Task Name"
-        - "Status"
-        - "Risk Level"
-        - "Next Milestone"
-    
-    - name: "Active Projects Timeline"
-      type: "gantt"
-      grouping: "Development Stage"
-      date_field: "Due Date"
-      show_dependencies: true
+  # ---------------------------------------------------------------
+  # SPACE-LEVEL VIEWS (PV Operations)
+  # ---------------------------------------------------------------
+  space_level:
+    - space: "pv_operations"
+      views:
+        - name: "Director Operations Dashboard"
+          type: "list"
+          source: "everything"
+          filters:
+            status_not: ["Closed", "Rejected/Cancelled"]
+          grouping:
+            primary: "Priority"
+            secondary: "Asset ID"
+          sorting: "Due Date (ascending)"
+          columns:
+            - "Task Name"
+            - "Asset ID"
+            - "Project Owner (PO)"
+            - "Status"
+            - "Priority"
+            - "Due Date"
+            - "Estimate €"
+            - "Approval Stage"
+            - "Days Open (formula)"
+          users: ["Director of Operations", "CEO"]
 
-  operations:
-    - name: "Daily Operations Board"
-      type: "board"
-      grouping: "status"
-      filters:
-        priority: [1, 2, 3]
-      columns:
-        - "Task Name"
-        - "O&M Partner"
-        - "Performance vs Target"
-        - "Due Date"
-    
-    - name: "Partner Performance"
-      type: "table"
-      grouping: "O&M Partner"
-      columns:
-        - "Task Name"
-        - "Status"
-        - "Performance vs Target"
-        - "Compliance Status"
-        - "Last Inspection Date"
-    
-    - name: "Maintenance Calendar"
-      type: "calendar"
-      date_field: "Next Maintenance"
-      color_by: "O&M Partner"
-    
-    - name: "Revenue Tracking"
-      type: "table"
-      grouping: "Compliance Status"
-      columns:
-        - "Task Name"
-        - "Asset Value"
-        - "Revenue MTD"
-        - "Revenue YTD"
-        - "Availability %"
-        - "Performance vs Target"
-    
-    - name: "Issues & Escalations"
-      type: "list"
-      filters:
-        status: ["Issue/Escalated", "Under Review"]
-      sort_by: "priority"
-      columns:
-        - "Task Name"
-        - "Status"
-        - "Priority"
-        - "O&M Partner"
-        - "Due Date"
+        - name: "Critical Issues Board"
+          type: "board"
+          filters:
+            work_type: "Corrective"
+            priority: ["🔴 Critical (24h)", "🟠 High (3d)"]
+            status_not: ["Closed"]
+          grouping: "Status"
+          card_display:
+            - "Asset ID"
+            - "Downtime Hours"
+            - "Days Since Notified"
+            - "Project Owner (PO)"
+          users: ["Director", "All POs"]
 
-# Example Projects Configuration
-examples:
-  datacenter:
-    enabled: true
-    name: "DC-Athens-001"
-    folder: "Datacenters Development"
-    space: "development"
-    description: "5 MW datacenter facility in Athens industrial zone"
-    custom_field_values:
-      "Project Value": 15000000
-      "Capacity/Size": "5 MW"
-      "Development Stage": "Permitting"
-      "Expected COD": "2026-12-31"
-      "Location": "Athens Industrial Zone"
-      "Lead Partner": "TechBuild Engineering"
-      "Budget Status": "On Budget"
-      "Risk Level": "Medium"
-      "Last Partner Meeting": "2026-01-01"
-      "Next Milestone": "Environmental Approval"
-  
-  pv_operations:
-    enabled: true
-    name: "PV-Kozani-05"
-    folder: "Solar PV Operations"
-    space: "operations"
-    description: "Operating 50 MW solar park in Kozani"
-    custom_field_values:
-      "Asset Value": 45000000
-      "Capacity/Size": "50 MW"
-      "Revenue MTD": 625000
-      "Revenue YTD": 625000
-      "Availability %": 97.8
-      "Last Inspection Date": "2025-12-15"
-      "Next Maintenance": "2026-03-20"
-      "O&M Partner": "Hellenic Solar Services"
-      "Compliance Status": "Compliant"
-      "Performance vs Target": "On Target"
+        - name: "Approval Queue"
+          type: "list"
+          filters:
+            approval_stage: ["Awaiting Director", "Awaiting CEO"]
+            status: "Pending Approval"
+          sorting: "Estimate € (descending)"
+          columns:
+            - "Task Name"
+            - "Asset"
+            - "PO"
+            - "Estimate €"
+            - "CAPEX/OPEX"
+            - "Approval Stage"
+            - "Days Waiting"
+          users: ["Director", "CEO", "Finance"]
+
+        - name: "Weekly Timeline"
+          type: "gantt"
+          filters:
+            scheduled_date: "Next 21 days"
+            work_type: ["Preventive", "Corrective", "CAPEX"]
+          grouping: "Asset ID"
+          date_range: "Week view"
+          users: ["Director", "All POs"]
+
+        - name: "PO Workload"
+          type: "workload"
+          filters:
+            status_not: ["Closed"]
+          grouping: "Project Owner (PO)"
+          display: ["Task count", "Total hours"]
+          users: ["Director"]
+
+  # ---------------------------------------------------------------
+  # LIST-LEVEL VIEWS (Individual PV Park)
+  # ---------------------------------------------------------------
+  list_level:
+    - list_type: "asset_operations"
+      views:
+        - name: "Active Work"
+          type: "board"
+          default: true
+          filters:
+            status_not: ["Closed"]
+          grouping: "Status"
+          card_display:
+            - "Priority"
+            - "Due Date"
+            - "Estimate €"
+            - "Project Owner (PO)"
+
+        - name: "Work Log"
+          type: "list"
+          filters: "all"
+          sorting: "Completion Date (descending)"
+          columns:
+            - "Task"
+            - "Status"
+            - "Work Type"
+            - "Completion Date"
+            - "Estimate €"
+            - "Root Cause"
+
+        - name: "Scheduled Maintenance"
+          type: "calendar"
+          filters:
+            work_type: "Preventive"
+          date_field: "Scheduled Date"
+          time_range: "Next 90 days"
+
+        - name: "Invoice Tracker"
+          type: "list"
+          filters:
+            estimate_greater_than: 0
+            status_not: ["Rejected"]
+          sorting: "Completion Date (descending)"
+          columns:
+            - "Task"
+            - "Completion Date"
+            - "Estimate €"
+            - "Invoice #"
+            - "Payment Stage"
+            - "50% Payment Date"
+            - "100% Payment Date"
+
+        - name: "This Month"
+          type: "board"
+          filters:
+            date_range: "This month (Created OR Completion)"
+          grouping: "Work Type"
+
+  # ---------------------------------------------------------------
+  # VENDOR MANAGEMENT VIEWS
+  # ---------------------------------------------------------------
+  vendor_views:
+    - folder: "vendor_mgmt"
+      views:
+        - name: "Vendor Task Log"
+          type: "list"
+          source: "all_lists_in_folder"
+          grouping: "Vendor"
+          sorting: "Completion Date (descending)"
+          columns:
+            - "Task"
+            - "Asset"
+            - "Vendor"
+            - "Status"
+            - "Response Time (hours)"
+            - "Estimate €"
+            - "SLA Status"
+
+        - name: "SLA Compliance Dashboard"
+          type: "dashboard"
+          widgets:
+            - type: "bar_chart"
+              title: "Avg Response Time by Vendor"
+              data: "Response Time (hours)"
+              group_by: "Vendor"
+            - type: "number_card"
+              title: "SLA Breaches"
+              filter: "SLA Status = Breached"
+            - type: "pie_chart"
+              title: "Tasks by Vendor"
+              group_by: "Vendor"
+            - type: "table"
+              title: "Overdue Reports"
+              filter: "Status = Report Pending, Due Date < Today"
+
+  # ---------------------------------------------------------------
+  # FINANCE SPACE VIEWS
+  # ---------------------------------------------------------------
+  finance_views:
+    - space: "finance"
+      views:
+        - name: "Payment Queue"
+          type: "list"
+          filters:
+            status: "Approved for Payment"
+            payment_stage: ["0% Paid", "50% Paid"]
+          sorting: "Payment Due Date (ascending)"
+          columns:
+            - "Task"
+            - "Asset"
+            - "Vendor"
+            - "Invoice #"
+            - "Estimate €"
+            - "Payment Stage"
+            - "Due Date"
+            - "Days Until Due"
+
+        - name: "Pending Approvals"
+          type: "board"
+          filters:
+            status: ["Invoice Received", "Verified"]
+          grouping: "Status"
+
+        - name: "Monthly Spend Dashboard"
+          type: "dashboard"
+          widgets:
+            - type: "number_card"
+              title: "Total OPEX MTD"
+              aggregation: "sum"
+              field: "Estimate €"
+              filter: "This month"
+            - type: "bar_chart"
+              title: "Spend by Asset"
+              group_by: "Asset ID"
+            - type: "pie_chart"
+              title: "Spend by Vendor"
+              group_by: "Vendor"
+            - type: "table"
+              title: "CAPEX Pipeline"
+              source: "CAPEX Pipeline list"
+            - type: "line_chart"
+              title: "Budget vs Actual"
+              data: ["Actual", "Budget"]
+
+# ===================================================================
+# DASHBOARDS & KPIs
+# ===================================================================
+
+dashboards:
+  # Dashboard 1: Director Operations Command Center
+  - name: "Director Operations Command Center"
+    location: "pv_operations"
+    audience: ["Director of Operations", "CEO"]
+    refresh: "real-time"
+    widgets:
+      - type: "number_card"
+        title: "Critical Alerts"
+        source: "Corrective tasks"
+        filter: "Priority = Critical, Status ≠ Closed"
+        metric: "count"
+        color: "#FF0000"
+
+      - type: "number_card"
+        title: "Approval Queue"
+        source: "All tasks"
+        filter: "Approval Stage = Awaiting Director OR Awaiting CEO"
+        metric: "count"
+        color: "#4169E1"
+
+      - type: "number_card"
+        title: "SLA Breaches (7d)"
+        source: "All tasks"
+        filter: "SLA Status = Breached, Last 7 days"
+        metric: "count"
+        color: "#FF8C00"
+
+      - type: "bar_chart"
+        title: "Active Work by Park"
+        source: "All tasks"
+        filter: "Status ≠ Closed"
+        group_by: "Asset ID"
+        metric: "count"
+
+      - type: "line_chart"
+        title: "Corrective Backlog Trend"
+        source: "Corrective tasks"
+        filter: "Status = Notified → Approved, Last 30 days"
+        metric: "count"
+        time_series: true
+
+      - type: "table"
+        title: "CAPEX Pipeline"
+        source: "CAPEX Pipeline list"
+        filter: "Status = Director Review OR CEO Review OR Approved"
+        columns: ["Task", "Asset", "Estimate €", "Status"]
+
+      - type: "pie_chart"
+        title: "Top 5 Vendors (Cost MTD)"
+        source: "All tasks"
+        filter: "This month"
+        group_by: "Vendor"
+        metric: "sum(Estimate €)"
+        limit: 5
+
+      - type: "number_card"
+        title: "Avg Response Time"
+        source: "Corrective tasks"
+        filter: "Last 30 days"
+        metric: "average(Response Time)"
+        unit: "hours"
+
+      - type: "number_card"
+        title: "Portfolio Availability"
+        manual_entry: true
+        unit: "%"
+        note: "Manual update OR API integration"
+
+      - type: "line_chart"
+        title: "Budget vs Actual (YTD)"
+        source: "All tasks"
+        metric: "sum(Estimate €) vs Budget field"
+        time_series: "monthly"
+
+      - type: "table"
+        title: "Overdue Tasks"
+        source: "All tasks"
+        filter: "Due Date < Today, Status ≠ Closed"
+        columns: ["Task", "Asset", "PO", "Due Date"]
+
+      - type: "number_card"
+        title: "This Week Completions"
+        source: "All tasks"
+        filter: "Status changed to Closed, Last 7 days"
+        metric: "count"
+
+  # Dashboard 2: PO Operations (Park-Level)
+  - name: "PO Operations Dashboard"
+    location: "list_level"
+    audience: ["Project Owners"]
+    refresh: "real-time"
+    widgets:
+      - type: "number_card"
+        title: "My Active Tasks"
+        filter: "Status ≠ Closed, This park"
+
+      - type: "number_card"
+        title: "Overdue This Park"
+        filter: "Due Date < Today, Status ≠ Closed"
+
+      - type: "number_card"
+        title: "This Month Spend"
+        metric: "sum(Estimate €)"
+        filter: "Completion Date = This month"
+        unit: "€"
+
+      - type: "number_card"
+        title: "YTD Spend"
+        metric: "sum(Estimate €)"
+        filter: "Completion Date = This year"
+        unit: "€"
+
+      - type: "bar_chart"
+        title: "Work by Status"
+        group_by: "Status"
+
+      - type: "pie_chart"
+        title: "Root Cause Analysis"
+        filter: "Corrective tasks, Last 90 days"
+        group_by: "Root Cause"
+
+      - type: "bar_chart"
+        title: "Vendor Response Times"
+        metric: "average(Response Time)"
+        group_by: "Vendor"
+        unit: "hours"
+
+      - type: "calendar"
+        title: "Upcoming Schedule (14d)"
+        date_field: "Scheduled Date"
+        range: "Next 14 days"
+
+      - type: "number_card"
+        title: "Downtime This Month"
+        metric: "sum(Downtime Hours)"
+        filter: "This month"
+        unit: "hours"
+
+      - type: "number_card"
+        title: "Energy Loss MTD"
+        metric: "sum(Energy Loss MWh)"
+        filter: "This month"
+        unit: "MWh"
+
+      - type: "number_card"
+        title: "Completion Rate"
+        formula: "Closed tasks / Total tasks"
+        filter: "This month"
+        unit: "%"
+
+      - type: "pie_chart"
+        title: "Payment Status"
+        group_by: "Payment Stage"
+
+  # Dashboard 3: Finance Payments
+  - name: "Finance Payments Dashboard"
+    location: "finance"
+    audience: ["Finance team", "CEO"]
+    refresh: "daily"
+    widgets:
+      - type: "number_card"
+        title: "Pending Payments"
+        filter: "Payment Stage = 50% Paid OR 0% Paid"
+
+      - type: "number_card"
+        title: "Total € Pending"
+        metric: "sum(Estimate €)"
+        filter: "Payment Stage ≠ 100% Paid"
+        unit: "€"
+
+      - type: "number_card"
+        title: "Overdue Invoices"
+        filter: "Payment Due Date < Today, Payment Stage ≠ 100% Paid"
+
+      - type: "table"
+        title: "Payment Queue (7d)"
+        filter: "Payment Due Date, Next 7 days"
+        columns: ["Task", "Vendor", "Amount", "Due Date"]
+
+      - type: "bar_chart"
+        title: "Spend by Vendor (MTD)"
+        metric: "sum(Estimate €)"
+        group_by: "Vendor"
+        filter: "This month"
+
+      - type: "bar_chart"
+        title: "Spend by Asset (MTD)"
+        metric: "sum(Estimate €)"
+        group_by: "Asset"
+        filter: "This month"
+
+      - type: "pie_chart"
+        title: "OPEX vs CAPEX (YTD)"
+        metric: "sum(Estimate €)"
+        group_by: "CAPEX/OPEX"
+
+      - type: "table"
+        title: "50/50 Payment Tracking"
+        columns: ["Task", "50% Date", "100% Date", "Payment Stage"]
+
+      - type: "number_card"
+        title: "Disputed Invoices"
+        filter: "Status = Disputed"
+
+      - type: "bar_chart"
+        title: "Budget Compliance"
+        data: ["Actual", "Budget"]
+        group_by: "Asset"
+
+      - type: "number_card"
+        title: "Avg Days to Payment"
+        formula: "average(100% Payment Date - Invoice Received Date)"
+        unit: "days"
+
+# # ===================================================================
+# # KPI DEFINITIONS
+# # ===================================================================
+
+# kpis:
+#   - name: "Portfolio Availability
+#     description: "Overall availability percentage across all PV parks"
+#     formula: "SUM(Available Hours) / SUM(Total Hours) * 100"
+#     target: "≥ 98.5%"
+#     frequency: "Monthly"
+#     data_source: "Monitoring System API or Manual Entry"

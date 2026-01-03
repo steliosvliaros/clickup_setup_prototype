@@ -1,12 +1,12 @@
 """
-ClickUp Setup Script for Asset Management & Development Company
+ClickUp Setup Script for PV Operations Management System
 
 This script creates the complete ClickUp workspace structure by loading
 configuration from config.yaml including:
 - Spaces, Folders, and Lists
-- Custom Fields
-- Status Workflows
-- Two Working Examples (Datacenter Dev + PV Operations)
+- Custom Fields (30+ field types)
+- Status Workflows (multiple workflow types)
+- Views and Dashboards configuration
 
 Requirements:
 pip install requests python-dotenv pyyaml
@@ -16,6 +16,9 @@ Setup:
 2. Get your Team ID from: https://app.clickup.com/settings/teams
 3. Set environment variables in .env file
 4. Configure workspace structure in config.yaml
+
+Note: Custom statuses and automations cannot be created via API.
+      Create them manually in ClickUp UI after running this script.
 """
 
 import requests
@@ -128,14 +131,22 @@ class ClickUpAPI:
     def create_custom_field(self, list_id: str, field_config: Dict) -> str:
         """Create a custom field in a list"""
         # Validate required fields
-        if "name" not in field_config or "type" not in field_config:
-            print(f"      ⚠️  Field config missing 'name' or 'type': {field_config}")
+        if "name" not in field_config:
+            print(f"      ⚠️  Field config missing 'name': {field_config}")
             return ""
+        
+        if "type" not in field_config:
+            print(f"      ⚠️  Field config missing 'type': {field_config}")
+            return ""
+        
+        # Debug: Show what we're sending
+        # print(f"      DEBUG: Creating field: {field_config.get('name')}")
+        # print(f"      DEBUG: Field data: {json.dumps(field_config, indent=2)}")
         
         result = self._request("POST", f"list/{list_id}/field", field_config)
         
-        # API returns field data nested under "field" key
-        field_data = result.get("field", result)
+        # API returns field data nested under "field" key or directly
+        field_data = result.get("field", result) if isinstance(result, dict) else {}
         
         if not field_data or "id" not in field_data:
             field_name = field_config.get("name", "Unknown")
@@ -222,6 +233,7 @@ class WorkspaceBuilder:
         self.structure = {}
         self.config = self._load_config(config_path)
         self.statuses_verified = {}  # Track which spaces have verified statuses
+        self.skipped_fields = []  # Track fields that couldn't be created via API
     
     def _load_config(self, config_path: str) -> Dict:
         """Load configuration from YAML file"""
@@ -230,6 +242,7 @@ class WorkspaceBuilder:
             raise FileNotFoundError(f"Config file not found: {config_path}")
         
         with open(config_file, 'r', encoding='utf-8') as f:
+
             return yaml.safe_load(f)
     
     def build_complete_workspace(self):
@@ -260,27 +273,49 @@ class WorkspaceBuilder:
         folders = {}
         all_statuses_ok = True
         
+        # Check if space should be skipped
+        if space_config.get("status") == "coming_soon":
+            print(f"   ⏭️  Skipping {space_config['name']} - marked as 'coming_soon'")
+            return folders
+        
         for folder_config in space_config.get("folders", []):
             folder_name = folder_config["name"]
+            folder_key = folder_config.get("key", folder_name.lower().replace(" ", "_"))
             print(f"   Creating folder: {folder_name}")
             
             folder_id = self.api.create_folder(space_id, folder_name)
-            folders[folder_name] = {"id": folder_id, "lists": {}}
+            folders[folder_name] = {"id": folder_id, "key": folder_key, "lists": {}}
             
             # Create lists in the folder
-            for list_name in folder_config.get("lists", []):
-                list_id = self.api.create_list(folder_id, list_name)
-                folders[folder_name]["lists"][list_name] = list_id
+            for list_config in folder_config.get("lists", []):
+                # Handle both string and dict formats
+                if isinstance(list_config, str):
+                    list_name = list_config
+                    list_type = "default"
+                    list_description = ""
+                else:
+                    list_name = list_config.get("name", "Unnamed List")
+                    list_type = list_config.get("type", "default")
+                    list_description = list_config.get("description", "")
                 
-                # Add custom fields based on space type
-                self._add_custom_fields(list_id, space_key)
+                print(f"      Creating list: {list_name} (type: {list_type})")
+                list_id = self.api.create_list(folder_id, list_name)
+                folders[folder_name]["lists"][list_name] = {
+                    "id": list_id,
+                    "type": list_type
+                }
+                
+                # Add custom fields based on list type
+                self._add_custom_fields(list_id, list_type, space_key, folder_name, list_name)
                 
                 # Check statuses (don't create - must be done manually)
-                status_ok = self._check_statuses(list_id, space_key)
+                status_ok = self._check_statuses(list_id, list_type)
                 if not status_ok:
                     all_statuses_ok = False
+                
+                time.sleep(0.3)  # Rate limiting per list
             
-            time.sleep(0.5)  # Rate limiting
+            time.sleep(0.5)  # Rate limiting per folder
         
         # Track if all statuses are verified for this space
         self.statuses_verified[space_key] = all_statuses_ok
@@ -288,28 +323,143 @@ class WorkspaceBuilder:
         # Create views for this space
         self._create_views(space_id, space_key)
         
-        # Setup automations (informational only - must be done manually)
-        self._setup_automations(space_key)
+        # Print status summary
+        self._print_status_summary(space_key)
         
         return folders
     
-    def _add_custom_fields(self, list_id: str, space_key: str):
-        """Add custom fields to a list based on space type"""
-        fields = self.config.get("custom_fields", {}).get(space_key, [])
+    def _add_custom_fields(self, list_id: str, list_type: str, space_key: str = "", folder_name: str = "", list_name: str = ""):
+        """Add custom fields to a list based on list type"""
+        custom_fields_config = self.config.get("custom_fields", {})
         
-        if not fields:
+        # Collect all applicable fields for this list type
+        applicable_fields = []
+        for field_category, fields in custom_fields_config.items():
+            if isinstance(fields, list):
+                for field in fields:
+                    applies_to = field.get("applies_to", [])
+                    if list_type in applies_to:
+                        applicable_fields.append(field)
+        
+        if not applicable_fields:
             return
         
-        for field in fields:
-            self.api.create_custom_field(list_id, field)
+        # Separate formula fields (not supported by API)
+        creatable_fields = []
+        formula_fields = []
+        for field in applicable_fields:
+            if field.get("type") == "formula":
+                formula_fields.append(field["name"])
+                # Track skipped field
+                self.skipped_fields.append({
+                    "space": space_key,
+                    "folder": folder_name,
+                    "list": list_name,
+                    "type": "formula",
+                    "name": field["name"],
+                    "reason": "Formula fields must be created manually in ClickUp UI"
+                })
+            else:
+                creatable_fields.append(field)
+        
+        if formula_fields:
+            print(f"         ⚠️  Skipping {len(formula_fields)} formula field(s) (must be created manually in ClickUp UI):")
+            for fname in formula_fields:
+                print(f"            - {fname}")
+        
+        if not creatable_fields:
+            return
+        
+        print(f"         Adding {len(creatable_fields)} custom fields...")
+        for field in creatable_fields:
+            # Map config field types to ClickUp API field types
+            type_mapping = {
+                "dropdown": "drop_down",
+                "text": "text",
+                "number": "number", 
+                "currency": "currency",
+                "date": "date",
+                "person": "users",
+                "checkbox": "checkbox",
+                "url": "url",
+                "email": "email",
+                "phone": "phone",
+                "location": "location",
+                "rating": "rating",
+                "labels": "labels"
+            }
+            
+            field_type = field.get("type", "text")
+            api_field_type = type_mapping.get(field_type, field_type)
+            
+            # Prepare field data for API - only include fields that ClickUp API accepts
+            field_data = {
+                "name": field["name"],
+                "type": api_field_type
+            }
+            
+            # Initialize type_config if needed for certain field types
+            if api_field_type in ["currency", "number", "drop_down", "labels"]:
+                field_data["type_config"] = {}
+            
+            # Handle type-specific configs FIRST
+            if field_type == "currency" and "currency" in field:
+                field_data["type_config"]["currency_type"] = field["currency"]
+            
+            if field_type in ["number", "currency"] and "precision" in field:
+                field_data["type_config"]["precision"] = field["precision"]
+            
+            # Add type_config if explicitly present in config
+            if "type_config" in field:
+                # Merge with existing type_config
+                if "type_config" in field_data:
+                    field_data["type_config"].update(field["type_config"])
+                else:
+                    field_data["type_config"] = field["type_config"]
+            elif "options" in field:
+                # Convert options to proper format for dropdown/labels
+                if "type_config" not in field_data:
+                    field_data["type_config"] = {}
+                field_data["type_config"]["options"] = []
+                for opt in field["options"]:
+                    if isinstance(opt, dict):
+                        # Already in correct format {name: "...", color: "..."}
+                        option_data = {"name": opt["name"]}
+                        if "color" in opt:
+                            option_data["color"] = opt["color"]
+                        # Note: ClickUp API doesn't support 'description' in dropdown options
+                        field_data["type_config"]["options"].append(option_data)
+                    else:
+                        # Plain string - convert to dict with just name
+                        field_data["type_config"]["options"].append({"name": str(opt)})
+            
+            # Clean up empty type_config
+            if "type_config" in field_data and not field_data["type_config"]:
+                del field_data["type_config"]
+            
+            # Add other API-supported configurations (but NOT applies_to, required_on_close, formula, currency, precision, etc.)
+            if "required" in field:
+                field_data["required"] = field["required"]
+            if "description" in field:
+                field_data["description"] = field["description"]
+            
+            self.api.create_custom_field(list_id, field_data)
             time.sleep(0.2)
     
-    def _check_statuses(self, list_id: str, space_key: str) -> bool:
-        """Check if statuses exist for a list based on space type"""
-        statuses = self.config.get("statuses", {}).get(space_key, [])
+    def _check_statuses(self, list_id: str, list_type: str) -> bool:
+        """Check if statuses exist for a list based on list type"""
+        statuses_config = self.config.get("statuses", {})
         
-        if statuses:
-            return self.api.update_list_statuses(list_id, statuses)
+        # Find applicable workflow for this list type
+        for workflow_key, workflow_data in statuses_config.items():
+            if isinstance(workflow_data, dict):
+                applies_to = workflow_data.get("applies_to", [])
+                if list_type in applies_to:
+                    statuses = workflow_data.get("statuses", [])
+                    if statuses:
+                        print(f"         Checking workflow: {workflow_data.get('workflow_name', workflow_key)}")
+                        return self.api.update_list_statuses(list_id, statuses)
+        
         return True
     
     def _create_views(self, space_id: str, space_key: str):
@@ -343,381 +493,25 @@ class WorkspaceBuilder:
             
             time.sleep(0.3)
     
-    def _setup_automations(self, space_key: str):
-        """Setup automations (informational - must be created manually in ClickUp UI)"""
-        automations = self.config.get("automations", {}).get(space_key, [])
+    def _print_status_summary(self, space_key: str):
+        """Print summary of status workflows that need to be created manually"""
+        statuses_config = self.config.get("statuses", {})
         
-        if not automations:
-            return
+        print(f"\n   📋 Status Workflows Summary for {space_key}:")
+        print(f"      ⚠️  Custom statuses must be created manually in ClickUp UI")
         
-        print(f"\n   🤖 Automation Setup Guide for {space_key}:")
-        print(f"      ⚠️  Automations cannot be created via API - please create manually:")
+        # Count workflows applicable to this space
+        workflow_count = 0
+        for workflow_key, workflow_data in statuses_config.items():
+            if isinstance(workflow_data, dict):
+                workflow_name = workflow_data.get('workflow_name', workflow_key)
+                status_count = len(workflow_data.get('statuses', []))
+                workflow_count += 1
+                print(f"      {workflow_count}. {workflow_name}: {status_count} statuses")
         
-        for i, auto in enumerate(automations, 1):
-            print(f"\n      {i}. {auto.get('name', 'Unnamed Automation')}")
-            
-            trigger = auto.get("trigger", {})
-            action = auto.get("action", {})
-            
-            print(f"         Trigger: {trigger.get('type', 'N/A')}")
-            if trigger.get("status"):
-                print(f"         - Status: {trigger['status']}")
-            if trigger.get("priority"):
-                print(f"         - Priority: {trigger['priority']}")
-            
-            print(f"         Action: {action.get('type', 'N/A')}")
-            if action.get("comment"):
-                print(f"         - Comment: {action['comment']}")
-            if action.get("status"):
-                print(f"         - Change to: {action['status']}")
-
-# ============================================================================
-# EXAMPLE PROJECTS CREATOR
-# ============================================================================
-
-class ExampleProjectsCreator:
-    def __init__(self, api: ClickUpAPI, structure: Dict, config: Dict, statuses_verified: Dict):
-        self.api = api
-        self.structure = structure
-        self.config = config
-        self.statuses_verified = statuses_verified
-    
-    def create_datacenter_example(self):
-        """Create a datacenter under development with realistic tasks"""
-        
-        # Check if statuses are verified for development space
-        if not self.statuses_verified.get("development", False):
-            print("\n🏭 Skipping Datacenter Example:")
-            print("   ⚠️  Custom statuses not verified for Development space.")
-            print("   Please create the custom statuses manually in ClickUp UI first.")
-            return False
-        
-        print("\n🏭 Creating Example: Datacenter Under Development...")
-        
-        # Get the Datacenters Development folder
-        folder_data = self.structure["development"].get("Datacenters Development")
-        if not folder_data:
-            print("   ⚠️  Datacenters Development folder not found, skipping example")
-            return False
-        
-        # Create tasks across different phases
-        self._create_datacenter_prefeasibility(folder_data)
-        self._create_datacenter_land_acquisition(folder_data)
-        self._create_datacenter_permitting(folder_data)
-        self._create_datacenter_engineering(folder_data)
-        
-        print("   ✓ Datacenter project created with 25+ tasks across 4 phases")
-        return True
-    
-    def create_pv_operations_example(self):
-        """Create an operating PV park with realistic tasks"""
-        
-        # Check if statuses are verified for operations space
-        if not self.statuses_verified.get("operations", False):
-            print("\n☀️  Skipping PV Operations Example:")
-            print("   ⚠️  Custom statuses not verified for Operations space.")
-            print("   Please create the custom statuses manually in ClickUp UI first.")
-            return False
-        
-        print("\n☀️  Creating Example: Operating PV Park...")
-        
-        # Get the Solar PV Operations folder
-        folder_data = self.structure["operations"].get("Solar PV Operations")
-        if not folder_data:
-            print("   ⚠️  Solar PV Operations folder not found, skipping example")
-            return False
-        
-        # Create tasks across operational areas
-        self._create_pv_performance_monitoring(folder_data)
-        self._create_pv_maintenance(folder_data)
-        self._create_pv_compliance(folder_data)
-        
-        print("   ✓ PV Operations project created with 20+ tasks across 3 areas")
-        return True
-    
-    def _create_datacenter_prefeasibility(self, folder_data: Dict):
-        """Prefeasibility tasks for datacenter"""
-        list_id = folder_data["lists"].get("Prefeasibility & Site Selection")
-        if not list_id:
-            return
-        
-        project_task = {
-            "name": "DC-Athens-001 Prefeasibility Study",
-            "description": "5 MW datacenter facility in Athens industrial zone. Target: Hyperscale cloud clients. Budget: €15M",
-            "status": "Partner In Progress",
-            "priority": 2,
-            "due_date": int((datetime.now() + timedelta(days=14)).timestamp() * 1000)
-        }
-        
-        parent_id = self.api.create_task(list_id, project_task)
-        
-        subtasks = [
-            {
-                "name": "Review site assessment report from technical partner",
-                "description": "**Director View:** Check if technical specs align with hyperscale requirements.\n**PM View:** Ensure partner delivered all required sections (power, cooling, connectivity, seismic).",
-                "status": "In Planning",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=3)).timestamp() * 1000)
-            },
-            {
-                "name": "Validate grid connection capacity with utility partner",
-                "description": "**Director View:** Confirm 10 MVA capacity is guaranteed.\n**PM View:** Schedule call with PPC representative, document commitments.",
-                "status": "Awaiting Partner",
-                "priority": 1,
-                "due_date": int((datetime.now() + timedelta(days=5)).timestamp() * 1000)
-            },
-            {
-                "name": "Review preliminary financial model",
-                "description": "**Director View:** Validate IRR projections and compare with investment criteria.\n**PM View:** Check revenue assumptions, verify OPEX estimates with O&M partners.",
-                "status": "Review Required",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=7)).timestamp() * 1000)
-            },
-            {
-                "name": "Coordinate market demand study with real estate partner",
-                "description": "**Director View:** Need confirmation of anchor tenant interest.\n**PM View:** Follow up on partner meetings with potential clients, get LOIs.",
-                "status": "Partner In Progress",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=10)).timestamp() * 1000)
-            },
-            {
-                "name": "Environmental pre-screening with consultant",
-                "description": "**Director View:** Any red flags that could delay permitting?\n**PM View:** Ensure partner completes noise, flora/fauna, and contamination studies.",
-                "status": "Completed",
-                "priority": 3
-            }
-        ]
-        
-        for subtask in subtasks:
-            self.api.create_subtask(parent_id, subtask)
-            time.sleep(0.3)
-    
-    def _create_datacenter_land_acquisition(self, folder_data: Dict):
-        """Land acquisition tasks"""
-        list_id = folder_data["lists"].get("Land Acquisition")
-        if not list_id:
-            return
-        
-        tasks = [
-            {
-                "name": "Land title verification - Legal partner (Papadopoulos & Associates)",
-                "description": "**Director:** Critical path item - need clear title by month-end.\n**PM:** Chase partner for final cadastral report and ownership chain verification.",
-                "status": "Awaiting Partner",
-                "priority": 1,
-                "due_date": int((datetime.now() + timedelta(days=8)).timestamp() * 1000)
-            },
-            {
-                "name": "Negotiate purchase terms with landowner",
-                "description": "**Director:** Target €180/sqm, max €200/sqm. 12-month payment schedule.\n**PM:** Schedule meeting with owner and legal partner. Prepare term sheet.",
-                "status": "In Planning",
-                "priority": 1,
-                "due_date": int((datetime.now() + timedelta(days=15)).timestamp() * 1000)
-            },
-            {
-                "name": "Coordinate due diligence with technical & legal partners",
-                "description": "**Director:** Weekly sync needed - this is our gating item.\n**PM:** Consolidate reports from all partners, flag any issues immediately.",
-                "status": "Partner In Progress",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=20)).timestamp() * 1000)
-            }
-        ]
-        
-        for task_data in tasks:
-            self.api.create_task(list_id, task_data)
-            time.sleep(0.3)
-    
-    def _create_datacenter_permitting(self, folder_data: Dict):
-        """Permitting tasks"""
-        list_id = folder_data["lists"].get("Permitting & Licensing")
-        if not list_id:
-            return
-        
-        tasks = [
-            {
-                "name": "Building permit application - Architecture partner coordination",
-                "description": "**Director:** Any changes to timeline? EC declaration needed.\n**PM:** Ensure partner submits complete package to municipality. Track submission number.",
-                "status": "Not Started",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=45)).timestamp() * 1000)
-            },
-            {
-                "name": "Environmental approval - Track consultant submission",
-                "description": "**Director:** Environmental permit is 3-month process - can't delay.\n**PM:** Weekly status calls with environmental consultant. Escalate any authority questions.",
-                "status": "Not Started",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=90)).timestamp() * 1000)
-            },
-            {
-                "name": "Fire safety approval coordination",
-                "description": "**Director:** Need MEP engineer input on fire suppression systems.\n**PM:** Connect fire safety consultant with MEP partner. Review combined submission.",
-                "status": "Not Started",
-                "priority": 3,
-                "due_date": int((datetime.now() + timedelta(days=60)).timestamp() * 1000)
-            }
-        ]
-        
-        for task_data in tasks:
-            self.api.create_task(list_id, task_data)
-            time.sleep(0.3)
-    
-    def _create_datacenter_engineering(self, folder_data: Dict):
-        """Engineering tasks"""
-        list_id = folder_data["lists"].get("Engineering & Design")
-        if not list_id:
-            return
-        
-        tasks = [
-            {
-                "name": "Review preliminary designs from MEP partner",
-                "description": "**Director:** Focus on redundancy levels (N+1) and PUE targets (<1.3).\n**PM:** Coordinate review meeting with technical advisor. Document all change requests.",
-                "status": "Not Started",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=30)).timestamp() * 1000)
-            },
-            {
-                "name": "Cooling system design review - Technical partner",
-                "description": "**Director:** Hybrid cooling solution approved? Cost implications?\n**PM:** Ensure partner provides 3 options with CAPEX/OPEX comparison. Set up review session.",
-                "status": "Not Started",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=35)).timestamp() * 1000)
-            }
-        ]
-        
-        for task_data in tasks:
-            self.api.create_task(list_id, task_data)
-            time.sleep(0.3)
-    
-    def _create_pv_performance_monitoring(self, folder_data: Dict):
-        """Performance monitoring tasks for PV"""
-        list_id = folder_data["lists"].get("Performance Monitoring")
-        if not list_id:
-            return
-        
-        project_task = {
-            "name": "PV-Kozani-05 Performance Monitoring (50 MW)",
-            "description": "Operating solar park in Kozani. O&M Partner: Hellenic Solar Services. Monthly target: 7,500 MWh",
-            "status": "In Progress",
-            "priority": 2
-        }
-        
-        parent_id = self.api.create_task(list_id, project_task)
-        
-        subtasks = [
-            {
-                "name": "Review daily production data from SCADA",
-                "description": "**Director:** Quick check - are we on target? Any anomalies?\n**O&M PM:** Log into monitoring portal, check actual vs. forecast. Flag if <95% of expected.",
-                "status": "In Progress",
-                "priority": 2,
-                "due_date": int(datetime.now().timestamp() * 1000)
-            },
-            {
-                "name": "Weekly performance report to director",
-                "description": "**Director:** Need energy yield, availability %, any issues, and financial impact.\n**O&M PM:** Compile SCADA data, calculate PR (performance ratio), summarize inverter issues.",
-                "status": "Scheduled",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=2)).timestamp() * 1000)
-            },
-            {
-                "name": "Follow up on Inverter #12 underperformance with O&M partner",
-                "description": "**Director:** This has been ongoing for 5 days - revenue impact?\n**O&M PM:** Chase partner for root cause analysis. Demand repair schedule or replacement.",
-                "status": "Partner Assigned",
-                "priority": 1,
-                "due_date": int((datetime.now() + timedelta(days=1)).timestamp() * 1000)
-            },
-            {
-                "name": "Monthly revenue reconciliation with off-taker",
-                "description": "**Director:** Ensure invoicing matches production. Cash flow check.\n**O&M PM:** Cross-check MWh invoiced vs. metered. Resolve any discrepancies with commercial team.",
-                "status": "Scheduled",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=5)).timestamp() * 1000)
-            },
-            {
-                "name": "Coordinate weather-adjusted forecasting with partner",
-                "description": "**Director:** Need accurate monthly forecast for board reporting.\n**O&M PM:** Send actual weather data to forecasting partner. Update monthly target if significant deviation.",
-                "status": "In Progress",
-                "priority": 3,
-                "due_date": int((datetime.now() + timedelta(days=7)).timestamp() * 1000)
-            }
-        ]
-        
-        for subtask in subtasks:
-            self.api.create_subtask(parent_id, subtask)
-            time.sleep(0.3)
-    
-    def _create_pv_maintenance(self, folder_data: Dict):
-        """Maintenance tasks for PV"""
-        list_id = folder_data["lists"].get("Maintenance Management")
-        if not list_id:
-            return
-        
-        tasks = [
-            {
-                "name": "Q1 Preventive Maintenance - Coordinate with O&M partner",
-                "description": "**Director:** Confirm downtime won't exceed 2 days. Budget check.\n**O&M PM:** Review partner's maintenance plan. Verify spare parts availability. Schedule during low-irradiance period.",
-                "status": "Scheduled",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=21)).timestamp() * 1000)
-            },
-            {
-                "name": "Panel cleaning service - Review partner performance",
-                "description": "**Director:** Are we seeing production uplift post-cleaning?\n**O&M PM:** Compare before/after production data. If <3% improvement, challenge partner's methods.",
-                "status": "Under Review",
-                "priority": 3,
-                "due_date": int((datetime.now() + timedelta(days=3)).timestamp() * 1000)
-            },
-            {
-                "name": "URGENT: Transformer oil analysis - Coordinate with maintenance contractor",
-                "description": "**Director:** Transformer failure would cost us €200k in lost revenue. Priority.\n**O&M PM:** Expedite oil sample to lab. If dissolved gas analysis shows issues, schedule immediate intervention.",
-                "status": "Issue/Escalated",
-                "priority": 1,
-                "due_date": int(datetime.now().timestamp() * 1000)
-            },
-            {
-                "name": "Vegetation management - Monitor partner execution",
-                "description": "**Director:** Fire risk in summer - must be completed by May.\n**O&M PM:** Inspect areas cleared by contractor. Ensure compliance with fire department requirements.",
-                "status": "Partner Assigned",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=14)).timestamp() * 1000)
-            }
-        ]
-        
-        for task_data in tasks:
-            self.api.create_task(list_id, task_data)
-            time.sleep(0.3)
-    
-    def _create_pv_compliance(self, folder_data: Dict):
-        """Compliance tasks for PV"""
-        list_id = folder_data["lists"].get("Compliance & Reporting")
-        if not list_id:
-            return
-        
-        tasks = [
-            {
-                "name": "Annual RAE reporting - Coordinate data collection",
-                "description": "**Director:** Regulatory deadline is firm - penalties for late submission.\n**O&M PM:** Compile all required data from SCADA and partner reports. Legal review before submission.",
-                "status": "In Progress",
-                "priority": 1,
-                "due_date": int((datetime.now() + timedelta(days=10)).timestamp() * 1000)
-            },
-            {
-                "name": "Environmental compliance audit - Facilitate auditor access",
-                "description": "**Director:** Any findings could affect operations license.\n**O&M PM:** Coordinate with O&M partner for site access. Prepare documentation on waste disposal, oil storage.",
-                "status": "Scheduled",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=18)).timestamp() * 1000)
-            },
-            {
-                "name": "Insurance renewal documentation for broker",
-                "description": "**Director:** Need updated asset value and risk assessment.\n**O&M PM:** Request current condition report from O&M partner. Update broker on any material changes.",
-                "status": "In Progress",
-                "priority": 2,
-                "due_date": int((datetime.now() + timedelta(days=25)).timestamp() * 1000)
-            }
-        ]
-        
-        for task_data in tasks:
-            self.api.create_task(list_id, task_data)
-            time.sleep(0.3)
+        if workflow_count > 0:
+            print(f"\n      💡 Refer to config.yaml 'statuses' section for details")
+            print(f"      💡 See docs/STATUS_SETUP_GUIDE.md for step-by-step instructions")
 
 # ============================================================================
 # MAIN EXECUTION
@@ -732,10 +526,11 @@ def main():
     2. Configure workspace structure in config.yaml
     3. Run: python clickup_python_setup.py
     
-    IMPORTANT NOTE:
-    - Custom statuses CANNOT be created via API
-    - You must create them manually in ClickUp UI before running this script
-    - The script will check if statuses exist before creating examples
+    IMPORTANT NOTES:
+    - This script creates: Spaces, Folders, Lists, and Custom Fields
+    - Custom statuses CANNOT be created via API (must be done manually)
+    - Views, Dashboards, and Automations have limited API support
+    - NO EXAMPLES will be created - only the workspace structure
     """
     
     # Load environment variables
@@ -755,7 +550,7 @@ def main():
     api = ClickUpAPI(config)
     
     print("=" * 80)
-    print("CLICKUP WORKSPACE SETUP FOR ASSET MANAGEMENT COMPANY")
+    print("CLICKUP WORKSPACE SETUP - PV OPERATIONS MANAGEMENT SYSTEM")
     print("=" * 80)
     
     # Build workspace from YAML config
@@ -768,40 +563,9 @@ def main():
         return
     except Exception as e:
         print(f"❌ Error building workspace: {e}")
+        import traceback
+        traceback.print_exc()
         return
-    
-    # Check if we can proceed with examples
-    print("\n" + "=" * 80)
-    print("CHECKING STATUS VERIFICATION")
-    print("=" * 80)
-    
-    all_statuses_ok = all(statuses_verified.values())
-    
-    if all_statuses_ok:
-        print("\n✅ All custom statuses verified! Proceeding with example creation...")
-    else:
-        print("\n⚠️  Some custom statuses are missing:")
-        for space_key, verified in statuses_verified.items():
-            status_icon = "✓" if verified else "✗"
-            print(f"   {status_icon} {space_key.capitalize()} Space: {'OK' if verified else 'Missing Statuses'}")
-        
-        print("\n📝 TO CREATE CUSTOM STATUSES MANUALLY:")
-        print("   1. Go to ClickUp and open your workspace")
-        print("   2. Navigate to each Space")
-        print("   3. Open any List")
-        print("   4. Click on the status dropdown")
-        print("   5. Click '+ Add Status' to create custom statuses")
-        print("   6. Refer to config.yaml for required status names and colors")
-        print("\n   Once statuses are created, run this script again to create examples.")
-    
-    # Create example projects only if statuses are verified
-    print("\n" + "=" * 80)
-    print("CREATING WORKING EXAMPLES")
-    print("=" * 80)
-    
-    examples = ExampleProjectsCreator(api, structure, builder.config, statuses_verified)
-    datacenter_created = examples.create_datacenter_example()
-    pv_created = examples.create_pv_operations_example()
     
     # Summary
     print("\n" + "=" * 80)
@@ -812,44 +576,81 @@ def main():
     
     total_folders = sum(len(space_data) for space_data in structure.values())
     print(f"   - {total_folders} Folders configured")
-    print("   - All lists created")
-    print("   - Custom fields applied")
+    
+    total_lists = sum(
+        len(folder_data.get("lists", {})) 
+        for space_data in structure.values() 
+        for folder_data in space_data.values()
+    )
+    print(f"   - {total_lists} Lists created")
+    print("   - All custom fields applied based on list types")
     print("   - Status verification completed")
     
-    if all_statuses_ok:
-        print("\n✅ Working Examples:")
-        if datacenter_created:
-            print("   - Datacenter Under Development (25+ tasks) ✓")
-        if pv_created:
-            print("   - Operating PV Park (20+ tasks) ✓")
-    else:
-        print("\n⚠️  Examples NOT created (custom statuses required)")
-    
-    print("\n📊 Views Configuration:")
-    views_count = len(builder.config.get("views", {}).get("development", [])) + \
-                  len(builder.config.get("views", {}).get("operations", []))
-    print(f"   - {views_count} views configured (create manually if needed)")
-    
-    print("\n🤖 Automations Configuration:")
-    auto_count = len(builder.config.get("automations", {}).get("development", [])) + \
-                 len(builder.config.get("automations", {}).get("operations", []))
-    print(f"   - {auto_count} automations documented (create manually in ClickUp UI)")
-    
     print("\n📋 Next Steps:")
-    if not all_statuses_ok:
-        print("   1. ⚠️  CREATE CUSTOM STATUSES in ClickUp UI (see config.yaml)")
-        print("   2. Re-run this script to create working examples")
-    else:
-        print("   1. Log into ClickUp and explore the workspace")
-    print(f"   {'2' if all_statuses_ok else '3'}. Customize views per your needs")
-    print(f"   {'3' if all_statuses_ok else '4'}. Set up automations (via ClickUp UI - see guide above)")
-    print(f"   {'4' if all_statuses_ok else '5'}. Modify config.yaml to add/change structure")
-    print(f"   {'5' if all_statuses_ok else '6'}. Invite team members and assign roles")
+    print("   1. ⚠️  CREATE CUSTOM STATUSES in ClickUp UI")
+    print("      - See config.yaml 'statuses' section for all workflows")
+    print("      - Multiple workflow types: corrective_maintenance, preventive_maintenance, capex, invoice, warranty")
+    print("   2. 📊 CREATE VIEWS in ClickUp UI")
+    print("      - See config.yaml 'views' section for recommended configurations")
+    print("      - Director Dashboard, Critical Issues Board, Approval Queue, etc.")
+    print("   3. 🤖 SET UP AUTOMATIONS (if needed)")
+    print("      - Configure task templates and automations manually in ClickUp")
+    print("   4. 👥 INVITE TEAM MEMBERS")
+    print("      - Configure permissions based on roles (Director, POs, Finance, etc.)")
+    print("   5. 📁 START USING THE WORKSPACE")
+    print("      - Create tasks using the task templates defined in config.yaml")
+    print("   - All custom fields are already configured and ready to use")
     
     print("\n💡 Configuration File:")
     print("   - All settings are in config.yaml")
-    print("   - Modify spaces, folders, lists, fields, statuses, views, and automations")
+    print("   - Modify spaces, folders, lists, fields, statuses, views, and workflows")
     print("   - Re-run script after changes to update workspace")
+    
+    print("\n" + "=" * 80)
+    print("SKIPPED FIELDS SUMMARY")
+    print("=" * 80)
+    
+    if builder.skipped_fields:
+        # Group skipped fields by space, folder, and list
+        grouped = {}
+        for skip in builder.skipped_fields:
+            space = skip["space"]
+            folder = skip["folder"]
+            list_name = skip["list"]
+            
+            if space not in grouped:
+                grouped[space] = {}
+            if folder not in grouped[space]:
+                grouped[space][folder] = {}
+            if list_name not in grouped[space][folder]:
+                grouped[space][folder][list_name] = []
+            
+            grouped[space][folder][list_name].append(skip)
+        
+        # Print organized summary
+        total_skipped = len(builder.skipped_fields)
+        print(f"\n⚠️  Total Skipped Fields: {total_skipped}\n")
+        
+        for space in sorted(grouped.keys()):
+            print(f"📍 Space: {space.upper()}")
+            for folder in sorted(grouped[space].keys()):
+                print(f"   📂 Folder: {folder}")
+                for list_name in sorted(grouped[space][folder].keys()):
+                    print(f"      📋 List: {list_name}")
+                    for field in grouped[space][folder][list_name]:
+                        field_type = field["type"]
+                        field_name = field["name"]
+                        reason = field.get("reason", "Not supported")
+                        print(f"         • {field_type.upper()}: {field_name}")
+                        print(f"           → {reason}")
+        
+        print("\n💡 NEXT STEP: Create formula fields manually in ClickUp UI")
+        print("   1. Open each list in ClickUp")
+        print("   2. Click on 'Add Field' button")
+        print("   3. Select 'Formula' as field type")
+        print("   4. Configure the formula as shown in config.yaml")
+    else:
+        print("✅ No fields were skipped - all custom fields created successfully!")
     
     print("\n" + "=" * 80)
 
