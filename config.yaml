@@ -1,5 +1,459 @@
-# Prototype config placeholder.
-# Your current script does NOT read this file.
-# Keep it for later if you decide to externalize structure/settings.
+# ClickUp Workspace Configuration
 workspace:
-  name: "ClickUp Workspace Setup Prototype"
+  name: "Asset Management & Development Company"
+
+spaces:
+  - name: "Development Projects"
+    key: "development"
+    folders:
+      - name: "Solar PV Development"
+        lists:
+          - "Prefeasibility & Site Selection"
+          - "Land Acquisition"
+
+          
+          - "Permitting & Licensing"
+          - "Engineering & Design"
+          - "Procurement"
+          - "Construction"
+          - "Commissioning"
+      - name: "Datacenters Development"
+        lists:
+          - "Prefeasibility & Site Selection"
+          - "Land Acquisition"
+          - "Permitting & Licensing"
+          - "Engineering & Design"
+          - "Procurement"
+          - "Construction"
+          - "Commissioning"
+      - name: "Hotels Development"
+        lists:
+          - "Prefeasibility & Site Selection"
+          - "Land Acquisition"
+          - "Permitting & Licensing"
+          - "Engineering & Design"
+          - "Procurement"
+          - "Construction"
+          - "Commissioning"
+      - name: "Hydroponic Farms Development"
+        lists:
+          - "Prefeasibility & Site Selection"
+          - "Land Acquisition"
+          - "Permitting & Licensing"
+          - "Engineering & Design"
+          - "Procurement"
+          - "Construction"
+          - "Commissioning"
+
+  - name: "Operations & Maintenance"
+    key: "operations"
+    folders:
+      - name: "Solar PV Operations"
+        lists:
+          - "Performance Monitoring"
+          - "Maintenance Management"
+          - "Compliance & Reporting"
+          - "Asset Optimization"
+          - "Incident Management"
+      - name: "Wind Farms Operations"
+        lists:
+          - "Performance Monitoring"
+          - "Maintenance Management"
+          - "Compliance & Reporting"
+          - "Asset Optimization"
+          - "Incident Management"
+      - name: "Hotels Operations"
+        lists:
+          - "Performance Monitoring"
+          - "Maintenance Management"
+          - "Compliance & Reporting"
+          - "Asset Optimization"
+          - "Incident Management"
+
+  - name: "Corporate & Shared"
+    key: "corporate"
+    folders:
+      - name: "Financial Management"
+        lists:
+          - "Budget Tracking"
+          - "Financial Reporting"
+          - "Invoicing"
+      - name: "HR & Administration"
+        lists:
+          - "Recruitment"
+          - "Team Management"
+          - "Admin Tasks"
+      - name: "Partner Management"
+        lists:
+          - "Partner Onboarding"
+          - "Performance Review"
+          - "Contracts"
+      - name: "Strategic Initiatives"
+        lists:
+          - "Strategic Projects"
+          - "Business Development"
+
+statuses:
+  development:
+    - name: "Not Started"
+      color: "#d3d3d3"
+      type: "open"
+    - name: "In Planning"
+      color: "#6fddff"
+      type: "custom"
+    - name: "Awaiting Partner"
+      color: "#b973ff"
+      type: "custom"
+    - name: "Partner In Progress"
+      color: "#ffcc00"
+      type: "custom"
+    - name: "Review Required"
+      color: "#ff9900"
+      type: "custom"
+    - name: "Completed"
+      color: "#00cc66"
+      type: "closed"
+    - name: "Blocked"
+      color: "#ff0000"
+      type: "custom"
+      
+  operations:
+    - name: "Scheduled"
+      color: "#6fddff"
+      type: "open"
+    - name: "In Progress"
+      color: "#ffcc00"
+      type: "custom"
+    - name: "Partner Assigned"
+      color: "#b973ff"
+      type: "custom"
+    - name: "Under Review"
+      color: "#ff9900"
+      type: "custom"
+    - name: "Completed"
+      color: "#00cc66"
+      type: "closed"
+    - name: "Issue/Escalated"
+      color: "#ff0000"
+      type: "custom"
+
+custom_fields:
+  development:
+    - name: "Project Value"
+      type: "currency"
+      type_config:
+        default: 0
+        precision: 2
+        currency_type: "EUR"
+    - name: "Capacity/Size"
+      type: "short_text"
+    - name: "Development Stage"
+      type: "drop_down"
+      type_config:
+        options:
+          - name: "Prefeasibility"
+            color: "#6fddff"
+          - name: "Land Acquisition"
+            color: "#b4e7ff"
+          - name: "Permitting"
+            color: "#7ee37e"
+          - name: "Engineering"
+            color: "#ffcc00"
+          - name: "Procurement"
+            color: "#ff9900"
+          - name: "Construction"
+            color: "#ff6600"
+          - name: "Commissioning"
+            color: "#00cc66"
+    - name: "Expected COD"
+      type: "date"
+    - name: "Location"
+      type: "short_text"
+    - name: "Lead Partner"
+      type: "short_text"
+    - name: "Budget Status"
+      type: "drop_down"
+      type_config:
+        options:
+          - name: "On Budget"
+            color: "#00cc66"
+          - name: "5% Over"
+            color: "#ffcc00"
+          - name: "10%+ Over"
+            color: "#ff3300"
+          - name: "Under Budget"
+            color: "#00cc66"
+    - name: "Risk Level"
+      type: "drop_down"
+      type_config:
+        options:
+          - name: "Low"
+            color: "#00cc66"
+          - name: "Medium"
+            color: "#ffcc00"
+          - name: "High"
+            color: "#ff6600"
+          - name: "Critical"
+            color: "#ff0000"
+    - name: "Last Partner Meeting"
+      type: "date"
+    - name: "Next Milestone"
+      type: "short_text"
+
+  operations:
+    - name: "Asset Value"
+      type: "currency"
+      type_config:
+        default: 0
+        precision: 2
+        currency_type: "EUR"
+    - name: "Capacity/Size"
+      type: "short_text"
+    - name: "Revenue MTD"
+      type: "currency"
+      type_config:
+        default: 0
+        precision: 2
+        currency_type: "EUR"
+    - name: "Revenue YTD"
+      type: "currency"
+      type_config:
+        default: 0
+        precision: 2
+        currency_type: "EUR"
+    - name: "Availability %"
+      type: "number"
+    - name: "Last Inspection Date"
+      type: "date"
+    - name: "Next Maintenance"
+      type: "date"
+    - name: "O&M Partner"
+      type: "short_text"
+    - name: "Compliance Status"
+      type: "drop_down"
+      type_config:
+        options:
+          - name: "Compliant"
+            color: "#00cc66"
+          - name: "Minor Issues"
+            color: "#ffcc00"
+          - name: "Critical"
+            color: "#ff0000"
+    - name: "Performance vs Target"
+      type: "drop_down"
+      type_config:
+        options:
+          - name: "Above Target"
+            color: "#00cc66"
+          - name: "On Target"
+            color: "#6fddff"
+          - name: "Below Target"
+            color: "#ff6600"
+
+# Automations Configuration
+automations:
+  development:
+    - name: "Auto-notify on status change to Blocked"
+      trigger:
+        type: "status_updated"
+        status: "Blocked"
+      action:
+        type: "post_comment"
+        comment: "⚠️ Task is blocked! Please review and add blocker details in the description."
+    
+    - name: "Auto-notify on high priority overdue"
+      trigger:
+        type: "task_overdue"
+        priority: [1, 2]
+      action:
+        type: "post_comment"
+        comment: "🚨 High priority task is overdue! Please update status or extend deadline."
+    
+    - name: "Auto-move to Review when Partner In Progress completed"
+      trigger:
+        type: "status_updated"
+        from_status: "Partner In Progress"
+        to_status: "Completed"
+      action:
+        type: "change_status"
+        status: "Review Required"
+    
+    - name: "Notify when task moves to Awaiting Partner"
+      trigger:
+        type: "status_updated"
+        status: "Awaiting Partner"
+      action:
+        type: "post_comment"
+        comment: "📧 Waiting for partner action. Please ensure partner is notified and track response time."
+
+  operations:
+    - name: "Escalate critical issues"
+      trigger:
+        type: "status_updated"
+        status: "Issue/Escalated"
+      action:
+        type: "post_comment"
+        comment: "🔴 CRITICAL: Issue escalated! Immediate attention required. Update every 4 hours."
+    
+    - name: "Remind for maintenance tasks"
+      trigger:
+        type: "due_date_approaching"
+        days_before: 3
+        list_contains: "Maintenance"
+      action:
+        type: "post_comment"
+        comment: "⏰ Maintenance task due in 3 days. Ensure contractor is scheduled and materials are available."
+    
+    - name: "Auto-comment on completion"
+      trigger:
+        type: "status_updated"
+        status: "Completed"
+      action:
+        type: "post_comment"
+        comment: "✅ Task completed. Please update custom fields with final data and attach documentation."
+    
+    - name: "Partner assignment notification"
+      trigger:
+        type: "status_updated"
+        status: "Partner Assigned"
+      action:
+        type: "post_comment"
+        comment: "👥 Assigned to partner. Track progress and set follow-up reminder."
+
+# Views Configuration
+views:
+  development:
+    - name: "Director Dashboard"
+      type: "board"
+      grouping: "status"
+      filters:
+        priority: [1, 2]
+      columns:
+        - "Task Name"
+        - "Development Stage"
+        - "Project Value"
+        - "Risk Level"
+        - "Due Date"
+    
+    - name: "Partner Coordination Timeline"
+      type: "timeline"
+      grouping: "Lead Partner"
+      date_field: "Due Date"
+      filters:
+        status: ["Awaiting Partner", "Partner In Progress"]
+    
+    - name: "Budget Overview"
+      type: "table"
+      grouping: "Budget Status"
+      columns:
+        - "Task Name"
+        - "Project Value"
+        - "Budget Status"
+        - "Development Stage"
+        - "Risk Level"
+        - "Lead Partner"
+    
+    - name: "Risk Management"
+      type: "board"
+      grouping: "Risk Level"
+      filters:
+        status: ["In Planning", "Awaiting Partner", "Partner In Progress", "Blocked"]
+      columns:
+        - "Task Name"
+        - "Status"
+        - "Risk Level"
+        - "Next Milestone"
+    
+    - name: "Active Projects Timeline"
+      type: "gantt"
+      grouping: "Development Stage"
+      date_field: "Due Date"
+      show_dependencies: true
+
+  operations:
+    - name: "Daily Operations Board"
+      type: "board"
+      grouping: "status"
+      filters:
+        priority: [1, 2, 3]
+      columns:
+        - "Task Name"
+        - "O&M Partner"
+        - "Performance vs Target"
+        - "Due Date"
+    
+    - name: "Partner Performance"
+      type: "table"
+      grouping: "O&M Partner"
+      columns:
+        - "Task Name"
+        - "Status"
+        - "Performance vs Target"
+        - "Compliance Status"
+        - "Last Inspection Date"
+    
+    - name: "Maintenance Calendar"
+      type: "calendar"
+      date_field: "Next Maintenance"
+      color_by: "O&M Partner"
+    
+    - name: "Revenue Tracking"
+      type: "table"
+      grouping: "Compliance Status"
+      columns:
+        - "Task Name"
+        - "Asset Value"
+        - "Revenue MTD"
+        - "Revenue YTD"
+        - "Availability %"
+        - "Performance vs Target"
+    
+    - name: "Issues & Escalations"
+      type: "list"
+      filters:
+        status: ["Issue/Escalated", "Under Review"]
+      sort_by: "priority"
+      columns:
+        - "Task Name"
+        - "Status"
+        - "Priority"
+        - "O&M Partner"
+        - "Due Date"
+
+# Example Projects Configuration
+examples:
+  datacenter:
+    enabled: true
+    name: "DC-Athens-001"
+    folder: "Datacenters Development"
+    space: "development"
+    description: "5 MW datacenter facility in Athens industrial zone"
+    custom_field_values:
+      "Project Value": 15000000
+      "Capacity/Size": "5 MW"
+      "Development Stage": "Permitting"
+      "Expected COD": "2026-12-31"
+      "Location": "Athens Industrial Zone"
+      "Lead Partner": "TechBuild Engineering"
+      "Budget Status": "On Budget"
+      "Risk Level": "Medium"
+      "Last Partner Meeting": "2026-01-01"
+      "Next Milestone": "Environmental Approval"
+  
+  pv_operations:
+    enabled: true
+    name: "PV-Kozani-05"
+    folder: "Solar PV Operations"
+    space: "operations"
+    description: "Operating 50 MW solar park in Kozani"
+    custom_field_values:
+      "Asset Value": 45000000
+      "Capacity/Size": "50 MW"
+      "Revenue MTD": 625000
+      "Revenue YTD": 625000
+      "Availability %": 97.8
+      "Last Inspection Date": "2025-12-15"
+      "Next Maintenance": "2026-03-20"
+      "O&M Partner": "Hellenic Solar Services"
+      "Compliance Status": "Compliant"
+      "Performance vs Target": "On Target"

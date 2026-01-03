@@ -6,5 +6,6 @@ dependencies:
   - requests
   - pip
   - ipykernel
+  - pyyaml
   - pip:
       - python-dotenv
